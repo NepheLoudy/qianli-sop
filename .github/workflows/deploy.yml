@@ -1,0 +1,30 @@
+name: Deploy SOP to Aliyun OSS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download website files
+        uses: actions/checkout@v4
+
+      - name: Upload website to Aliyun OSS
+        uses: fangbinwei/aliyun-oss-website-action@v1.4.1
+        with:
+          accessKeyId: ${{ secrets.OSS_ACCESS_KEY_ID }}
+          accessKeySecret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+          bucket: qianli-sop
+          endpoint: oss-cn-beijing.aliyuncs.com
+          folder: ./
+          indexPage: index.html
+          notFoundPage: 404.html
+          incremental: true
