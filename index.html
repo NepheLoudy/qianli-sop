@@ -384,54 +384,7 @@
     <h1 contenteditable="true" id="pageTitle">千里基本工作 SOP · 数字星球导航</h1>
     <p contenteditable="true" id="pageSubtitle">3D 球面漂浮分布 · 整体自转 · 节点呼吸浮动 · 拖拽旋转 · 滚轮缩放</p>
   </div>
-
-  <!-- 编辑面板 -->
-  <div class="edit-panel" id="editPanel">
-    <!-- ✅ 给 header 加 id，后续用 addEventListener 绑定 -->
-    <div class="edit-panel-header" id="editPanelHeader">
-      <h2>🛠 编辑面板（修改节点后自动重建星球）</h2>
-      <span class="hint">点击折叠/展开 <span class="arrow">▶</span></span>
-    </div>
-    <div class="edit-panel-body">
-      <div class="section-title">全局</div>
-      <div class="toolbar">
-        <button class="btn btn-green" id="btnRebuild">🔄 重建星球</button>
-        <button class="btn-amber btn" id="btnExport">📤 导出 JSON</button>
-        <button class="btn" id="btnImportTrig">📥 导入 JSON</button>
-        <input type="file" id="importFile" accept=".json" style="display:none;">
-        <button class="btn btn-purple" id="btnRotate">⏯ 自转 开/关</button>
-        <button class="btn btn-red" id="btnReset">↺ 重置默认</button>
-      </div>
-      <div class="section-title">节点编辑</div>
-      <div class="toolbar" style="margin-bottom:6px;">
-        <span style="font-size:10px;color:#64748b;">Level 0=球心｜1=内｜2=中｜3=外｜样式：普通球/虚线圈/方块。<b style="color:#38bdf8;">跨链接</b>=特别关联其他节点ID（逗号分隔，聚焦时一并拉向中心）。<b style="color:#fb923c;">额外父节点</b>=可链接另一节点当"父"，显示继承线。</span>
-      </div>
-      <div class="tree-edit-wrap">
-        <table class="tree-edit-table">
-          <thead>
-            <tr>
-              <th class="col-level">层级</th>
-              <th style="min-width:180px;">节点文本</th>
-              <th style="min-width:220px;">链接 URL</th>
-              <th class="col-type">父ID</th>
-              <th class="col-type">Side</th>
-              <th class="col-type">样式</th>
-              <th style="min-width:130px;">跨链接ID</th>
-              <th style="min-width:130px;">额外父节点</th>
-              <th class="col-color">色</th>
-              <th class="col-act">操作</th>
-            </tr>
-          </thead>
-          <tbody id="treeTableBody"></tbody>
-        </table>
-      </div>
-      <div class="toolbar" style="margin-top:8px;">
-        <button class="btn btn-green" id="btnAddNode">+ 添加节点</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 3D 场景 -->
+<!-- 3D 场景 -->
   <div class="scene-wrap">
     <div class="hud hud-tip">
       <h4>🖱 操作</h4>
@@ -2079,7 +2032,7 @@ function bootUI() {
   if (header && panel) {
     header.addEventListener('click', togglePanel);
     // 默认展开编辑面板
-    panel.classList.add('open');
+    // (部署版已移除编辑面板)
   }
 
   // 工具栏按钮（元素存在才绑定，避免 DOM 不完整时报错）
