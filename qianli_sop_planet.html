@@ -1,0 +1,2138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>千里基本工作SOP · 数字星球导航</title>
+<!-- ✅ 本地相对路径加载，完全兼容 file:// 双击打开，无跨域/ORB 问题 -->
+<!-- 顺序严格：先 THREE，再 OrbitControls（因为后者依赖 THREE 的 Vector3 等类） -->
+<script src="./three.min.js"></script>
+<script src="./OrbitControls.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+    background: #020617;
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 14px;
+    overflow-x: hidden;
+  }
+  /* 背景星空 */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, #fff 50%, transparent 100%),
+      radial-gradient(1px 1px at 70% 80%, #a78bfa 50%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 45% 60%, #60a5fa 50%, transparent 100%),
+      radial-gradient(1px 1px at 90% 20%, #fff 50%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 10% 85%, #f472b6 50%, transparent 100%),
+      radial-gradient(1px 1px at 55% 15%, #fff 50%, transparent 100%),
+      radial-gradient(1px 1px at 35% 90%, #fff 50%, transparent 100%),
+      radial-gradient(1.2px 1.2px at 80% 50%, #34d399 50%, transparent 100%);
+    background-size: 600px 600px;
+    animation: starDrift 180s linear infinite;
+    opacity: 0.65;
+    pointer-events: none;
+    z-index: 0;
+  }
+  @keyframes starDrift {
+    from { background-position: 0 0; }
+    to   { background-position: 600px 600px; }
+  }
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at center, rgba(59,130,246,0.08) 0%, rgba(0,0,0,0) 60%);
+    pointer-events: none; z-index: 0;
+  }
+  .container { max-width: 1920px; margin: 0 auto; position: relative; z-index: 1; }
+
+  /* 顶部 */
+  .header {
+    text-align: center;
+    padding: 10px 0 14px;
+    margin-bottom: 12px;
+  }
+  .header h1 {
+    font-size: 22px;
+    background: linear-gradient(90deg, #38bdf8, #818cf8, #f0abfc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 3px;
+    outline: none;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .header h1:focus { background: rgba(96,165,250,0.08); -webkit-text-fill-color: #e2e8f0; }
+  .header p {
+    color: #64748b;
+    font-size: 11px;
+    outline: none;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+  }
+  .header p:focus { background: rgba(96,165,250,0.08); color: #f1f5f9; }
+
+  /* 编辑面板 */
+  .edit-panel {
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 12px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.55), inset 0 0 20px rgba(56,189,248,0.04);
+  }
+  .edit-panel-header {
+    background: rgba(56, 189, 248, 0.08);
+    padding: 9px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+  }
+  .edit-panel-header h2 { font-size: 13px; color: #7dd3fc; }
+  .edit-panel-header .hint { font-size: 11px; color: #64748b; }
+  .edit-panel-body { padding: 14px; display: none; }
+  .edit-panel.open .edit-panel-body { display: block; }
+  .edit-panel .arrow { transition: transform 0.2s; color: #7dd3fc; display: inline-block; }
+  .edit-panel.open .arrow { transform: rotate(90deg); }
+
+  .section-title {
+    font-size: 11px;
+    color: #7dd3fc;
+    margin: 10px 0 6px;
+    padding-bottom: 3px;
+    border-bottom: 1px dashed rgba(56, 189, 248, 0.25);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .section-title:first-child { margin-top: 0; }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    align-items: center;
+    margin-bottom: 7px;
+  }
+  .btn {
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    color: #7dd3fc;
+    padding: 4px 11px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 10px;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .btn:hover { background: rgba(56, 189, 248, 0.22); }
+  .btn-green { background: rgba(52, 211, 153, 0.1); border-color: rgba(52, 211, 153, 0.35); color: #6ee7b7; }
+  .btn-green:hover { background: rgba(52, 211, 153, 0.22); }
+  .btn-red { background: rgba(248, 113, 113, 0.1); border-color: rgba(248, 113, 113, 0.35); color: #fca5a5; }
+  .btn-red:hover { background: rgba(248, 113, 113, 0.22); }
+  .btn-amber { background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.35); color: #fcd34d; }
+  .btn-amber:hover { background: rgba(251, 191, 36, 0.22); }
+  .btn-purple { background: rgba(192, 132, 252, 0.1); border-color: rgba(192, 132, 252, 0.35); color: #d8b4fe; }
+  .btn-purple:hover { background: rgba(192, 132, 252, 0.22); }
+  .btn-xs { padding: 2px 7px; font-size: 10px; }
+
+  /* 树编辑表 */
+  .tree-edit-wrap {
+    max-height: 380px;
+    overflow-y: auto;
+    border: 1px solid rgba(56, 189, 248, 0.22);
+    border-radius: 7px;
+    background: rgba(2, 6, 23, 0.6);
+  }
+  .tree-edit-wrap::-webkit-scrollbar { width: 7px; }
+  .tree-edit-wrap::-webkit-scrollbar-thumb { background: rgba(56,189,248,0.35); border-radius: 4px; }
+  .tree-edit-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+  }
+  .tree-edit-table th {
+    background: rgba(56, 189, 248, 0.15);
+    color: #7dd3fc;
+    padding: 6px 4px;
+    text-align: center;
+    font-weight: 600;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.25);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  .tree-edit-table td {
+    padding: 2px 3px;
+    border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+    vertical-align: middle;
+  }
+  .tree-edit-table tr:hover { background: rgba(56, 189, 248, 0.05); }
+  .tree-edit-table input[type="text"],
+  .tree-edit-table input[type="url"],
+  .tree-edit-table input[type="number"] {
+    width: 100%;
+    background: rgba(2, 6, 23, 0.75);
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    color: #e2e8f0;
+    padding: 3px 4px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-family: inherit;
+  }
+  .tree-edit-table input:focus {
+    border-color: #38bdf8;
+    outline: 2px solid rgba(56, 189, 248, 0.12);
+    outline-offset: -1px;
+  }
+  .tree-edit-table select {
+    width: 100%;
+    background: rgba(2, 6, 23, 0.75);
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    color: #e2e8f0;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-family: inherit;
+  }
+  .col-level { width: 54px; text-align: center; }
+  .col-type  { width: 80px; }
+  .col-color { width: 46px; }
+  .col-act   { width: 88px; text-align: center; }
+  .level-tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 8px;
+    font-size: 9px;
+    font-weight: 600;
+  }
+  .level-0 { background: rgba(56,189,248,0.25); color: #7dd3fc; }
+  .level-1 { background: rgba(168,85,247,0.25); color: #d8b4fe; }
+  .level-2 { background: rgba(236,72,153,0.25); color: #f9a8d4; }
+  .level-3 { background: rgba(52,211,153,0.25); color: #6ee7b7; }
+  .level-4 { background: rgba(251,191,36,0.25); color: #fcd34d; }
+  .indent-bar {
+    display: inline-flex;
+    gap: 2px;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+  .indent-unit {
+    width: 9px;
+    height: 9px;
+    border-left: 2px solid rgba(71,85,105,0.5);
+    border-bottom: 2px solid rgba(71,85,105,0.5);
+    border-radius: 0 0 0 3px;
+  }
+
+  /* ========== 3D 容器 ========== */
+  .scene-wrap {
+    position: relative;
+    background: radial-gradient(ellipse at center, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 1) 80%);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 14px;
+    box-shadow: 0 0 60px rgba(56,189,248,0.1), inset 0 0 80px rgba(99,102,241,0.08);
+    overflow: hidden;
+  }
+  #threeCanvas {
+    display: block;
+    width: 100%;
+    height: 720px;
+  }
+
+  .hud {
+    position: absolute;
+    pointer-events: none;
+    z-index: 10;
+    font-family: "Microsoft YaHei", sans-serif;
+  }
+  .hud-legend {
+    top: 16px; left: 16px;
+    background: rgba(2, 6, 23, 0.8);
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    border-radius: 9px;
+    padding: 10px 13px;
+    font-size: 10.5px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+  .hud-legend h4 { font-size: 11px; color: #38bdf8; margin-bottom: 6px; font-weight: 700; letter-spacing: 0.5px; }
+  .legend-row { display: flex; align-items: center; gap: 6px; margin: 3px 0; color: #cbd5e1; }
+  .legend-ball {
+    width: 12px; height: 12px; border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 10px currentColor;
+  }
+  .legend-square {
+    width: 12px; height: 10px; border-radius: 2px;
+    flex-shrink: 0;
+    box-shadow: 0 0 10px currentColor;
+  }
+  .legend-ring {
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 2px dashed #fbbf24;
+    flex-shrink: 0;
+    box-shadow: 0 0 10px #fbbf24;
+  }
+  .hud-tip {
+    top: 16px; right: 16px;
+    background: rgba(2, 6, 23, 0.8);
+    border: 1px solid rgba(52, 211, 153, 0.28);
+    border-radius: 9px;
+    padding: 10px 13px;
+    font-size: 10.5px;
+    backdrop-filter: blur(8px);
+    max-width: 230px;
+    line-height: 1.6;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+  .hud-tip h4 { font-size: 11px; color: #34d399; margin-bottom: 5px; font-weight: 700; }
+  .hud-tip ul { list-style: none; padding-left: 0; color: #cbd5e1; }
+  .hud-tip li::before { content: '▸ '; color: #34d399; }
+
+  .hud-stats {
+    bottom: 16px; left: 16px;
+    background: rgba(2, 6, 23, 0.8);
+    border: 1px solid rgba(100, 116, 139, 0.3);
+    border-radius: 9px;
+    padding: 6px 12px;
+    font-size: 10.5px;
+    backdrop-filter: blur(8px);
+    color: #94a3b8;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+  .hud-stats b { color: #e2e8f0; font-weight: 600; }
+
+  /* Tooltip */
+  #nodeTooltip {
+    position: fixed;
+    display: none;
+    background: rgba(2, 6, 23, 0.95);
+    border: 1px solid rgba(56, 189, 248, 0.6);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: #e2e8f0;
+    max-width: 260px;
+    pointer-events: none;
+    z-index: 50;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 6px 24px rgba(56,189,248,0.25);
+  }
+  #nodeTooltip .tt-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 3px;
+  }
+  #nodeTooltip .tt-meta {
+    color: #94a3b8;
+    font-size: 10px;
+    border-top: 1px dashed rgba(100,116,139,0.4);
+    margin-top: 5px;
+    padding-top: 5px;
+  }
+  #nodeTooltip .tt-link {
+    color: #fbbf24;
+    font-size: 10px;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: rgba(52, 211, 153, 0.95); color: #022c22;
+    padding: 9px 22px; border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(52, 211, 153, 0.4);
+    font-size: 13px; font-weight: 600;
+    transition: transform 0.3s; z-index: 999;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.error { background: rgba(248, 113, 113, 0.95); color: #fff; box-shadow: 0 8px 24px rgba(248, 113, 113, 0.4); }
+
+  /* 加载提示 */
+  #loadingTip {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: #7dd3fc;
+    font-size: 13px;
+    padding: 10px 20px;
+    background: rgba(2,6,23,0.9);
+    border: 1px solid rgba(56,189,248,0.3);
+    border-radius: 8px;
+    z-index: 20;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1 contenteditable="true" id="pageTitle">千里基本工作 SOP</h1>
+    <p contenteditable="true" id="pageSubtitle">曼波大模型Made by：张郭浩</p>
+  </div>
+
+  <!-- 编辑面板 -->
+  <div class="edit-panel" id="editPanel">
+    <!-- ✅ 给 header 加 id，后续用 addEventListener 绑定 -->
+    <div class="edit-panel-header" id="editPanelHeader">
+      <h2>🛠 编辑面板（修改节点后自动重建星球）</h2>
+      <span class="hint">点击折叠/展开 <span class="arrow">▶</span></span>
+    </div>
+    <div class="edit-panel-body">
+      <div class="section-title">全局</div>
+      <div class="toolbar">
+        <button class="btn btn-green" id="btnRebuild">🔄 重建星球</button>
+        <button class="btn-amber btn" id="btnExport">📤 导出 JSON</button>
+        <button class="btn" id="btnImportTrig">📥 导入 JSON</button>
+        <input type="file" id="importFile" accept=".json" style="display:none;">
+        <button class="btn btn-purple" id="btnRotate">⏯ 自转 开/关</button>
+        <button class="btn btn-red" id="btnReset">↺ 重置默认</button>
+      </div>
+      <div class="section-title">节点编辑</div>
+      <div class="toolbar" style="margin-bottom:6px;">
+        <span style="font-size:10px;color:#64748b;">Level 0=球心｜1=内｜2=中｜3=外｜样式：普通球/虚线圈/方块。<b style="color:#38bdf8;">跨链接</b>=特别关联其他节点ID（逗号分隔，聚焦时一并拉向中心）。<b style="color:#fb923c;">额外父节点</b>=可链接另一节点当"父"，显示继承线。</span>
+      </div>
+      <div class="tree-edit-wrap">
+        <table class="tree-edit-table">
+          <thead>
+            <tr>
+              <th class="col-level">层级</th>
+              <th style="min-width:180px;">节点文本</th>
+              <th style="min-width:220px;">链接 URL</th>
+              <th class="col-type">父ID</th>
+              <th class="col-type">Side</th>
+              <th class="col-type">样式</th>
+              <th style="min-width:130px;">跨链接ID</th>
+              <th style="min-width:130px;">额外父节点</th>
+              <th class="col-color">色</th>
+              <th class="col-act">操作</th>
+            </tr>
+          </thead>
+          <tbody id="treeTableBody"></tbody>
+        </table>
+      </div>
+      <div class="toolbar" style="margin-top:8px;">
+        <button class="btn btn-green" id="btnAddNode">+ 添加节点</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3D 场景 -->
+  <div class="scene-wrap">
+    <div class="hud hud-tip">
+      <h4>🖱 操作</h4>
+      <ul>
+        <li>左键拖拽：旋转视角</li>
+        <li>滚轮：缩放远近</li>
+        <li>右键拖拽：平移</li>
+        <li>悬停：高亮+停转</li>
+        <li>单击：聚焦节点</li>
+        <li>双击🔗球：跳转文档</li>
+        <li>点空白：退出聚焦</li>
+      </ul>
+    </div>
+    <div class="hud hud-stats" id="hudStats"></div>
+    <div id="nodeTooltip"></div>
+    <div id="loadingTip">⏳ 正在加载 Three.js 与构建星球…</div>
+    <canvas id="threeCanvas"></canvas>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ 默认数据 ============ */
+const DEFAULT_NODES = [
+  { id: 'root', text: '千里基本工作SOP', link: '', level: 0, parentId: '', side: '', style: 'normal', color: '#38bdf8' },
+  { id: 'l1-pm',   text: '项目管理',       link: '', level: 1, parentId: 'root', side: 'R', style: 'normal', color: '#a855f7' },
+  { id: 'l1-eq',   text: '设备使用规范',   link: '', level: 1, parentId: 'root', side: 'R', style: 'normal', color: '#a855f7' },
+  { id: 'l1-base', text: '基础工作',       link: '', level: 1, parentId: 'root', side: 'L', style: 'normal', color: '#a855f7' },
+  { id: 'l2-pm-life', text: '项目完整生命流程', link: '', level: 2, parentId: 'l1-pm', side: 'R', style: 'normal', color: '#ec4899' },
+  { id: 'l2-pm-back', text: '千里后端',         link: '', level: 2, parentId: 'l1-pm', side: 'R', style: 'normal', color: '#ec4899' },
+  { id: 'l3-life-flow',  text: '基本工作流',             link: '', level: 3, parentId: 'l2-pm-life', side: 'R', style: 'normal', color: '#34d399' },
+  { id: 'l3-life-meet',  text: '技术组/兵种组/全体会议', link: '', level: 3, parentId: 'l2-pm-life', side: 'R', style: 'normal', color: '#34d399' },
+  { id: 'l3-life-fab',   text: '发加工规范',             link: '', level: 3, parentId: 'l2-pm-life', side: 'R', style: 'normal', color: '#34d399' },
+  { id: 'ref-btm',       text: 'BTM-ch1.1',             link: '', level: 3, parentId: 'l2-pm-life', side: 'R', style: 'ref-box', color: '#fbbf24' },
+  { id: 'l3-back-kanban', text: '项目看板', link: '', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399' },
+  { id: 'l3-back-forum',  text: '千里论坛', link: '', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399' },
+  { id: 'l3-back-robot',  text: '机器人',   link: '', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399' },
+  { id: 'l3-back-stock',  text: '入库系统', link: '', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399' },
+  { id: 'l3-back-approve',text: '审批系统', link: '', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399' },
+  { id: 'ref-training',   text: '各模块通识培训文档', link: '', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'ref-box', color: '#fbbf24' },
+  { id: 'l2-eq-basic',  text: '基本加工工具培训流程',   link: '', level: 2, parentId: 'l1-eq', side: 'R', style: 'normal', color: '#ec4899' },
+  { id: 'l2-eq-special',text: '特别设备/消耗品管理条例', link: '', level: 2, parentId: 'l1-eq', side: 'R', style: 'normal', color: '#ec4899' },
+  { id: 'l3-basic-3d',   text: '3D打印机',     link: '', level: 3, parentId: 'l2-eq-basic', side: 'R', style: 'normal', color: '#34d399' },
+  { id: 'l3-basic-lathe',text: '车/钻床',      link: '', level: 3, parentId: 'l2-eq-basic', side: 'R', style: 'normal', color: '#34d399' },
+  { id: 'l3-basic-cnc',  text: '雕铣机',       link: '', level: 3, parentId: 'l2-eq-basic', side: 'R', style: 'normal', color: '#34d399' },
+  { id: 'l3-basic-cnc2', text: 'CNC加工设备',  link: '', level: 3, parentId: 'l2-eq-basic', side: 'R', style: 'normal', color: '#34d399' },
+  { id: 'l3-basic-hand', text: '手持电动工具', link: '', level: 3, parentId: 'l2-eq-basic', side: 'R', style: 'normal', color: '#34d399' },
+  { id: 'l3-basic-saw',  text: '圆锯',         link: '', level: 3, parentId: 'l2-eq-basic', side: 'R', style: 'normal', color: '#34d399' },
+  { id: 'ref-certify',   text: '先培训、再认证、后使用', link: '', level: 3, parentId: 'l2-eq-basic', side: 'R', style: 'ref-box', color: '#fbbf24' },
+  { id: 'l3-sp-cf',    text: '-CF 3D打印材料',           link: '', level: 3, parentId: 'l2-eq-special', side: 'R', style: 'example', color: '#fbbf24' },
+  { id: 'l3-sp-cert',  text: '基本加工工具使用资格认证', link: '', level: 3, parentId: 'l2-eq-special', side: 'R', style: 'example', color: '#fbbf24' },
+  { id: 'l3-sp-cool',  text: '冷却剂等危化品使用办法',   link: '', level: 3, parentId: 'l2-eq-special', side: 'R', style: 'example', color: '#fbbf24' },
+  { id: 'ref-mgrboard',text: '管理责任人公示、领用情况看板与使用注意事项', link: '', level: 3, parentId: 'l2-eq-special', side: 'R', style: 'ref-box', color: '#fbbf24' },
+  { id: 'l2-base-lab',    text: '实验室维护',   link: '', level: 2, parentId: 'l1-base', side: 'L', style: 'normal', color: '#ec4899' },
+  { id: 'l2-base-store',  text: '物品保管和归类', link: '', level: 2, parentId: 'l1-base', side: 'L', style: 'normal', color: '#ec4899' },
+  { id: 'l2-base-seat',   text: '工位维护',     link: '', level: 2, parentId: 'l1-base', side: 'L', style: 'normal', color: '#ec4899' },
+  { id: 'l3-lab-duty',   text: '值日',     link: '', level: 3, parentId: 'l2-base-lab', side: 'L', style: 'normal', color: '#34d399' },
+  { id: 'l3-lab-maint',  text: '设备维护', link: '', level: 3, parentId: 'l2-base-lab', side: 'L', style: 'normal', color: '#34d399' },
+  { id: 'l3-store-screw',   text: '螺丝柜',       link: '', level: 3, parentId: 'l2-base-store', side: 'L', style: 'normal', color: '#34d399' },
+  { id: 'l3-store-tool',    text: '基本工具保管', link: '', level: 3, parentId: 'l2-base-store', side: 'L', style: 'normal', color: '#34d399' },
+  { id: 'l3-store-elec',    text: '电器',         link: '', level: 3, parentId: 'l2-base-store', side: 'L', style: 'normal', color: '#34d399' },
+  { id: 'l3-store-mat',     text: '消耗品',       link: '', level: 3, parentId: 'l2-base-store', side: 'L', style: 'normal', color: '#34d399' },
+  { id: 'ref-toolrule', text: '基于各组工具分发和管理办法制定',           link: '', level: 3, parentId: 'l2-base-store', side: 'L', style: 'ref-box', color: '#fbbf24' },
+  { id: 'ref-elecrule', text: '包括电机、线材等工具存放位置、取用、报废规范', link: '', level: 3, parentId: 'l2-base-store', side: 'L', style: 'ref-box', color: '#fbbf24' },
+  { id: 'ref-matrule',  text: '包括存储、采购、使用规范',                  link: '', level: 3, parentId: 'l2-base-store', side: 'L', style: 'ref-box', color: '#fbbf24' },
+];
+
+let g_nodes = JSON.parse(JSON.stringify(DEFAULT_NODES));
+// 兼容旧数据：补齐 crossLinks（跨子树特殊关联）/ extraParents（额外父节点，逗号分隔）
+g_nodes.forEach(n => {
+  if (typeof n.crossLinks === 'undefined') n.crossLinks = '';
+  if (typeof n.extraParents === 'undefined') n.extraParents = '';
+});
+
+/* ============ 球层配置 ============ */
+const SHELL_RADIUS = { 0: 0.15, 1: 3.2, 2: 5.6, 3: 8.0, 4: 9.0, 5: 9.6 };
+const NODE_SIZE = {
+  0: { sprite: 0.9,  label: 0.62 },
+  1: { sprite: 0.7,  label: 0.50 },
+  2: { sprite: 0.55, label: 0.42 },
+  3: { sprite: 0.42, label: 0.36 },
+  4: { sprite: 0.38, label: 0.33 },
+  5: { sprite: 0.34, label: 0.31 },
+};
+function shellR(level){ return SHELL_RADIUS[Math.min(level,5)] ?? SHELL_RADIUS[5]; }
+function sizeOf(level){ return NODE_SIZE[Math.min(level,5)] ?? NODE_SIZE[5]; }
+
+/* ============ Three.js ============ */
+let scene, camera, renderer, controls;
+let worldGroup, linksGroup, nodesGroup, shellsGroup;
+let linkMatNormal, linkMatHL;
+let linkLinesNormal, linkLinesHL;
+let linkInfo = [];
+// 同心球层（后半球 + 近端淡出）
+let shellMatOuter = null, shellMeshOuter = null;
+let shellMatInner = null, shellMeshInner = null;
+let shellColorDefault = new THREE.Color('#38bdf8'); // 默认 root 色
+const nodeMeshes = [];
+let raycaster, pointer;
+let hovered = null;
+let autoRotate = true;
+// 聚焦状态
+let focused = null;          // 当前聚焦的 nodeMesh，null 表示未聚焦
+let focusT = 0;              // 过渡动画 0=原状, 1=聚焦态
+let focusDir = 0;            // -1=往原状收缩, 0=不变, +1=往聚焦态前进
+let focusTargets = null;     // 每个节点聚焦时的目标位置 Map<nodeId, Vector3>
+let focusRelatedSet = null;  // 相关节点ID集合（保留高亮）
+let rotateRestore = true;    // 悬停停转恢复标记
+// A→B 聚焦切换时的快照：上一次聚焦状态下节点当前位置快照（避免先复原再跳转的生硬感）
+let focusSnapshot = null;    // Map<nodeId, Vector3>
+
+function waitForThree(cb, _tries) {
+  _tries = _tries || 0;
+  if (window.THREE && THREE.OrbitControls) { cb(); return; }
+  if (_tries > 300) { // 15秒超时
+    const tip = document.getElementById('loadingTip');
+    if (tip) tip.innerHTML = '❌ 等待超时：Three.js 或 OrbitControls 未正确加载。<br>请刷新重试，或检查网络连接 unpkg.com。';
+    return;
+  }
+  setTimeout(() => waitForThree(cb, _tries+1), 50);
+}
+
+// 更可靠的尺寸获取：优先 CSS 布局尺寸，fallback 到父容器
+function getCanvasSize() {
+  const canvas = document.getElementById('threeCanvas');
+  const parent = canvas.parentElement;
+  const pw = parent ? parent.clientWidth : 0;
+  const ph = parent ? parent.clientHeight : 0;
+  // 尝试多种方式取尺寸
+  let W = canvas.clientWidth || canvas.offsetWidth || pw || 0;
+  let H = canvas.clientHeight || canvas.offsetHeight || ph || 0;
+  // 如果 CSS 设置了 height，优先用 CSS 计算值
+  const cs = getComputedStyle(canvas);
+  if (!H && cs.height && cs.height !== 'auto') H = parseFloat(cs.height) || 0;
+  if (!W && cs.width  && cs.width  !== 'auto') W = parseFloat(cs.width)  || 0;
+  // 还不行就用 scene-wrap 默认尺寸
+  if (!W) W = Math.min(window.innerWidth - 28, 1800);
+  if (!H) H = 720;
+  return { W: Math.max(300, W|0), H: Math.max(300, H|0) };
+}
+
+function initThree() {
+  const canvas = document.getElementById('threeCanvas');
+  const { W, H } = getCanvasSize();
+
+  scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x020617, 18, 38);
+
+  camera = new THREE.PerspectiveCamera(50, W/H, 0.1, 200);
+  camera.position.set(0, 2.5, 15);
+
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(W, H, false);
+  renderer.setClearColor(0x000000, 0);
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.rotateSpeed = 0.6;
+  controls.zoomSpeed = 0.8;
+  controls.minDistance = 5;
+  controls.maxDistance = 35;
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const d1 = new THREE.DirectionalLight(0x88aaff, 0.8);
+  d1.position.set(5, 8, 6); scene.add(d1);
+  const d2 = new THREE.DirectionalLight(0xff88cc, 0.45);
+  d2.position.set(-6, -3, 4); scene.add(d2);
+  const p1 = new THREE.PointLight(0x22d3ee, 1.2, 30);
+  p1.position.set(-4, 4, -5); scene.add(p1);
+
+  worldGroup = new THREE.Group();
+  scene.add(worldGroup);
+
+  linksGroup = new THREE.Group(); worldGroup.add(linksGroup);
+  nodesGroup = new THREE.Group(); worldGroup.add(nodesGroup);
+  shellsGroup = new THREE.Group(); worldGroup.add(shellsGroup);
+  shellsGroup.renderOrder = -1; // 先画，透明物体在后
+
+  const coreGlow = new THREE.Sprite(makeGlowMat(0x38bdf8, 3.0, 0.35));
+  worldGroup.add(coreGlow);
+
+  raycaster = new THREE.Raycaster();
+  pointer = new THREE.Vector2();
+  canvas.addEventListener('pointermove', onPointerMove);
+  canvas.addEventListener('pointerdown', onPointerDownEv);
+  canvas.addEventListener('pointerup', onPointerUpEv);
+  canvas.addEventListener('click', onCanvasClickSafe);
+  window.addEventListener('keydown', onKeyEv);
+  window.addEventListener('resize', onResize);
+
+  // 隐藏加载提示
+  const tip = document.getElementById('loadingTip');
+  if (tip) { tip.style.transition = 'opacity .4s'; tip.style.opacity = '0'; setTimeout(()=>tip.remove(), 500); }
+}
+
+function addShellWireframes() {
+  [
+    { r: 3.2, color: 0x6366f1, opacity: 0.06 },
+    { r: 5.6, color: 0x8b5cf6, opacity: 0.05 },
+    { r: 8.0, color: 0xec4899, opacity: 0.045 },
+  ].forEach(s => {
+    const geo = new THREE.SphereGeometry(s.r, 32, 24);
+    const mat = new THREE.MeshBasicMaterial({
+      color: s.color, wireframe: true, transparent: true, opacity: s.opacity, depthWrite: false
+    });
+    worldGroup.add(new THREE.Mesh(geo, mat));
+  });
+}
+
+/* ============ 纹理生成 ============ */
+function makeBallTexture(color, style='normal', nodeId='') {
+  const size = 256;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = size;
+  const ctx = cv.getContext('2d');
+  const cx = size/2, cy = size/2;
+  if (style === 'ref-box') {
+    const pad = 28, w = size - pad*2, h = (size - pad*2)*0.72;
+    const sh = ctx.createRadialGradient(cx, cy, 0, cx, cy, size/2);
+    sh.addColorStop(0,hexToRgba(color,0.45)); sh.addColorStop(0.5,hexToRgba(color,0.18)); sh.addColorStop(1,hexToRgba(color,0));
+    ctx.fillStyle = sh; ctx.fillRect(0,0,size,size);
+    roundRect(ctx, cx-w/2, cy-h/2, w, h, 18);
+    const g = ctx.createLinearGradient(0, cy-h/2, 0, cy+h/2);
+    g.addColorStop(0,lighten(color,30)); g.addColorStop(0.5,color); g.addColorStop(1,darken(color,25));
+    ctx.fillStyle = g; ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = darken(color, 40); ctx.stroke();
+  } else if (style === 'example') {
+    const sh = ctx.createRadialGradient(cx,cy,0,cx,cy,size/2);
+    sh.addColorStop(0,hexToRgba(color,0.18)); sh.addColorStop(1,hexToRgba(color,0));
+    ctx.fillStyle = sh; ctx.fillRect(0,0,size,size);
+    const r0 = size*0.28;
+    const gc = ctx.createRadialGradient(cx,cy,0,cx,cy,r0);
+    gc.addColorStop(0,hexToRgba(color,0.35)); gc.addColorStop(1,hexToRgba(color,0.05));
+    ctx.fillStyle = gc; ctx.beginPath(); ctx.arc(cx,cy,r0,0,Math.PI*2); ctx.fill();
+    ctx.setLineDash([12,8]); ctx.lineWidth = 5; ctx.strokeStyle = color;
+    ctx.beginPath(); ctx.arc(cx,cy,size*0.4,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+    ctx.lineWidth = 1.5; ctx.strokeStyle = lighten(color, 25);
+    ctx.beginPath(); ctx.arc(cx,cy,size*0.33,0,Math.PI*2); ctx.stroke();
+  } else {
+    const glow = ctx.createRadialGradient(cx,cy,0,cx,cy,size/2);
+    glow.addColorStop(0,hexToRgba(color,0.5)); glow.addColorStop(0.45,hexToRgba(color,0.18)); glow.addColorStop(1,hexToRgba(color,0));
+    ctx.fillStyle = glow; ctx.fillRect(0,0,size,size);
+    const r0 = size*0.4;
+    const g = ctx.createRadialGradient(cx-r0*0.35, cy-r0*0.4, r0*0.1, cx, cy, r0);
+    g.addColorStop(0,'#fff'); g.addColorStop(0.18,lighten(color,40)); g.addColorStop(0.55,color); g.addColorStop(1,darken(color,30));
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx,cy,r0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.65)';
+    ctx.beginPath(); ctx.arc(cx-r0*0.3, cy-r0*0.35, r0*0.16, 0, Math.PI*2); ctx.fill();
+    ctx.lineWidth = 1.2; ctx.strokeStyle = darken(color, 45);
+    ctx.beginPath(); ctx.arc(cx,cy,r0,0,Math.PI*2); ctx.stroke();
+  }
+  // 球体贴图底部小字绘制 node id，便于维护时定位
+  if (nodeId !== undefined && nodeId !== null && String(nodeId).trim() !== '') {
+    const idText = (function(){
+      const s = String(nodeId);
+      // 长 id 做截断：短 id 直接显示，长 id（> 16）前后保留中间 …
+      if (s.length <= 16) return s;
+      return s.slice(0, 8) + '…' + s.slice(-6);
+    })();
+    const fontSize = 14;
+    const font = `${fontSize}px Consolas,"Microsoft YaHei",monospace`;
+    ctx.font = font;
+    const margin = 10;
+    const avail = size - margin*2;
+    // 测量宽度，超长再按像素宽度截断
+    let showText = idText;
+    let w = ctx.measureText(showText).width;
+    if (w > avail) {
+      // 从短到长测试，最长满足 avail
+      let lo = 0, hi = showText.length;
+      let best = 0;
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        const test = showText.slice(0, mid) + (mid < showText.length ? '…' : '');
+        if (ctx.measureText(test).width <= avail) { best = mid; lo = mid + 1; }
+        else hi = mid - 1;
+      }
+      showText = showText.slice(0, best) + (best < showText.length ? '…' : '');
+    }
+    ctx.font = font;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    const baseY = size - margin + 2;
+    // 描边增强可读性
+    ctx.lineJoin = 'round'; ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(2,6,23,0.95)';
+    ctx.strokeText(showText, cx, baseY);
+    // 浅色字
+    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 4;
+    ctx.fillStyle = lighten(color, 55);
+    ctx.fillText(showText, cx, baseY);
+    ctx.shadowBlur = 0;
+  }
+  return new THREE.CanvasTexture(cv);
+}
+function makeLabelTexture(text, color='#fff') {
+  const cv = document.createElement('canvas');
+  const ctx = cv.getContext('2d');
+  const fontSize = 44;
+  ctx.font = `bold ${fontSize}px "Microsoft YaHei","PingFang SC",sans-serif`;
+  const tw = Math.min(ctx.measureText(text).width, 680);
+  const padH = 20, padV = 16;
+  cv.width = Math.ceil(tw + padH*2); cv.height = Math.ceil(fontSize + padV*2);
+  ctx.font = `bold ${fontSize}px "Microsoft YaHei","PingFang SC",sans-serif`;
+  ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+  ctx.lineJoin = 'round'; ctx.lineWidth = 8;
+  ctx.strokeStyle = 'rgba(2,6,23,0.95)';
+  ctx.strokeText(text, padH, cv.height/2);
+  ctx.fillStyle = color;
+  ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 12;
+  ctx.fillText(text, padH, cv.height/2);
+  const tex = new THREE.CanvasTexture(cv);
+  return { tex, w: cv.width, h: cv.height };
+}
+function makeGlowMat(color, size=2, opacity=0.4) {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 256;
+  const ctx = cv.getContext('2d');
+  const g = ctx.createRadialGradient(128,128,0,128,128,128);
+  g.addColorStop(0,hexToRgba(color,opacity)); g.addColorStop(0.4,hexToRgba(color,opacity*0.45)); g.addColorStop(1,hexToRgba(color,0));
+  ctx.fillStyle = g; ctx.fillRect(0,0,256,256);
+  const tex = new THREE.CanvasTexture(cv);
+  const m = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+  m.userData._spriteSize = size;
+  return m;
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+// 颜色工具：强制字符串 + 非法值降级，避免 h.replace is not a function
+function _normHex(h, fallback){
+  let s = (h === undefined || h === null) ? '' : String(h);
+  s = s.trim();
+  if (!s) return fallback || '#34d399';
+  if (s[0] !== '#') {
+    // 接受 3/6 位无前缀 HEX
+    if (/^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$/.test(s)) s = '#' + s;
+    else return fallback || '#34d399';
+  }
+  if (/^#[0-9a-fA-F]{3}$|^#[0-9a-fA-F]{6}$/.test(s)) return s;
+  return fallback || '#34d399';
+}
+function hex2rgb(h){
+  const s = _normHex(h, '#34d399');
+  let f = s.replace('#','');
+  if (f.length === 3) f = f.split('').map(c => c + c).join('');
+  return [parseInt(f.slice(0,2),16), parseInt(f.slice(2,4),16), parseInt(f.slice(4,6),16)];
+}
+function rgb2hex(r,g,b){return '#'+[r,g,b].map(x=>Math.max(0,Math.min(255,Math.round(x))).toString(16).padStart(2,'0')).join('');}
+function lighten(h,p){const[r,g,b]=hex2rgb(h);return rgb2hex(r+(255-r)*p/100,g+(255-g)*p/100,b+(255-b)*p/100);}
+function darken(h,p){const[r,g,b]=hex2rgb(h);return rgb2hex(r*(1-p/100),g*(1-p/100),b*(1-p/100));}
+function hexToRgba(h,a){const[r,g,b]=hex2rgb(h);return 'rgba('+r+','+g+','+b+','+a+')';}
+
+/* ============ 原状布局：方向指向性树（中心节点均匀分布下一层；子节点沿父朝外方向锥延伸，不自由生长） ============ */
+// 半球/全锥分布：围绕任意轴，给 n 个均匀面密度点，半径为 radius，锥半角 coneHalf（弧度）
+// 返回相对位置（长度 ≈ radius，中心方向对齐 axis）
+function coneWorldPoints(axis, n, coneHalf, radius) {
+  const out = [];
+  if (n <= 0) return out;
+  const dir = axis.clone().normalize();
+  const phi = Math.PI * (3 - Math.sqrt(5));
+  const up = Math.abs(dir.y) < 0.9 ? new THREE.Vector3(0,1,0) : new THREE.Vector3(1,0,0);
+  const xAxis = new THREE.Vector3().crossVectors(up, dir).normalize();
+  const yAxis = new THREE.Vector3().crossVectors(dir, xAxis).normalize();
+  for (let i = 0; i < n; i++) {
+    const k = n === 1 ? 0 : i / (n - 1);
+    const theta = coneHalf * Math.sqrt(k);  // sqrt 保证面密度均匀
+    const azimuth = phi * i;
+    const s = Math.sin(theta), c = Math.cos(theta);
+    const local = new THREE.Vector3(s*Math.cos(azimuth), s*Math.sin(azimuth), c);
+    const world = new THREE.Vector3()
+      .addScaledVector(xAxis, local.x)
+      .addScaledVector(yAxis, local.y)
+      .addScaledVector(dir,   local.z)
+      .multiplyScalar(radius);
+    out.push(world);
+  }
+  return out;
+}
+// 全球面均匀分布（Fibonacci）
+function fiboSpherePoints(n, r) {
+  const out = [];
+  const phi = Math.PI * (3 - Math.sqrt(5));
+  for (let i = 0; i < n; i++) {
+    const k = n === 1 ? 0.5 : i / (n - 1);
+    const cosT = 1 - 2 * k;
+    const sinT = Math.sqrt(1 - cosT*cosT);
+    const th = phi * i;
+    out.push(new THREE.Vector3(r*sinT*Math.cos(th), r*sinT*Math.sin(th), r*cosT));
+  }
+  return out;
+}
+
+/* ============ 重建场景 ============ */
+function clearObjects() {
+  while (linksGroup && linksGroup.children.length) {
+    const c = linksGroup.children[0];
+    linksGroup.remove(c); c.geometry?.dispose(); c.material?.dispose();
+  }
+  while (nodesGroup && nodesGroup.children.length) {
+    const c = nodesGroup.children[0];
+    nodesGroup.remove(c);
+    c.traverse?.(o => { if (o.material) { o.material.map?.dispose?.(); o.material.dispose?.(); } });
+  }
+  nodeMeshes.length = 0;
+  linkInfo = [];
+  while (shellsGroup && shellsGroup.children.length) {
+    const c = shellsGroup.children[0];
+    shellsGroup.remove(c);
+    c.traverse?.(o => { if (o.material) { o.material.dispose?.(); } if (o.geometry) { o.geometry.dispose?.(); } });
+  }
+  if (shellMatOuter) { shellMatOuter.dispose(); shellMatOuter = null; }
+  if (shellMatInner) { shellMatInner.dispose(); shellMatInner = null; }
+  shellMeshOuter = null; shellMeshInner = null;
+  focused = null;
+  focusTargets = null;
+  focusRelatedSet = null;
+  focusT = 0;
+  focusDir = 0;
+  focusSnapshot = null;
+}
+
+function rebuildScene() {
+  if (!worldGroup) return; // 尚未初始化
+  clearObjects();
+  const byId = {};
+  g_nodes.forEach(n => byId[n.id] = n);
+  const valid = g_nodes.filter(n => n.id && (n.id === 'root' || byId[n.parentId]));
+  const vById = {}; valid.forEach(n => vById[n.id] = n);
+  const byLevel = {};
+  valid.forEach(n => {
+    if (!byLevel[n.level]) byLevel[n.level] = { L: [], R: [], any: [] };
+    const b = byLevel[n.level];
+    if (n.side === 'L') b.L.push(n);
+    else if (n.side === 'R') b.R.push(n);
+    else b.any.push(n);
+  });
+  const positions = {};
+
+  if (vById['root']) positions['root'] = new THREE.Vector3(0,0,0);
+
+  // --- L1：围绕中心均匀分布（Fibonacci 全球面），不按 side 扎堆 ---
+  const l1List = (byLevel[1]?.L||[]).concat(byLevel[1]?.any||[]).concat(byLevel[1]?.R||[]);
+  if (l1List.length) {
+    const R1 = shellR(1);
+    const pts = fiboSpherePoints(l1List.length, R1);
+    // 按 side 分类的稳定性重排：L 排前面、R 排后面、any 在中间，保证同 side 的节点相对集中
+    const sideOrder = (n) => (n.side==='L' ? 0 : n.side==='R' ? 2 : 1);
+    const ordered = [...l1List].sort((a,b) => sideOrder(a) - sideOrder(b) || a.id.localeCompare(b.id));
+    ordered.forEach((n, i) => {
+      // 轻微 side 偏移 + 球面基准：保持均匀，但 side=L 偏 -X，side=R 偏 +X（小量，不破坏均匀）
+      const p = pts[i].clone();
+      if (n.side === 'L') p.x = Math.sign(p.x||-1) * Math.max(Math.abs(p.x), 0.8) - 0.1;
+      if (n.side === 'R') p.x = Math.sign(p.x||+1) * Math.max(Math.abs(p.x), 0.8) + 0.1;
+      positions[n.id] = p;
+    });
+  }
+
+  // --- L2~L5：按父分组，沿「父朝外方向」呈树状锥延伸（步长 = shellR 级差），绝不自由生长 ---
+  [2,3,4,5].forEach(level => {
+    const list = (byLevel[level]?.L||[]).concat(byLevel[level]?.any||[]).concat(byLevel[level]?.R||[]);
+    if (!list?.length) return;
+    const byParent = {};
+    list.forEach(n => { if (!byParent[n.parentId]) byParent[n.parentId] = []; byParent[n.parentId].push(n); });
+    Object.entries(byParent).forEach(([pid, siblings]) => {
+      const parentPos = positions[pid];
+      if (!parentPos) return;
+      // 基准朝外方向：父位置相对球心（根/父）的方向 —— 即「朝父自己这个方向范围延伸」
+      const parentDir = (parentPos.lengthSq() > 1e-6) ? parentPos.clone().normalize() : new THREE.Vector3(0,1,0);
+      // 级间步长：贴合原生界面 SHELL_RADIUS 的层差（≈2.4）保证距离合适
+      const step = shellR(level) - shellR(level - 1);
+      // 锥半角：L2 稍小（收束），更深层级稍微打开一些，整体控制在总角 ≤130°，保持指向性
+      const coneHalf = (
+        level === 2 ? 58 :
+        level === 3 ? 66 :
+        level === 4 ? 70 : 72
+      ) * Math.PI / 180;
+      // 兄弟节点相对父位置，围绕 parentDir 均匀分布
+      const relPts = coneWorldPoints(parentDir, siblings.length, coneHalf, step);
+      // side 一致性轻偏移：L 子在 parentDir 左侧多一点，R 子在右侧多一点（正交父方向），不破坏锥方向
+      const up = Math.abs(parentDir.y) < 0.9 ? new THREE.Vector3(0,1,0) : new THREE.Vector3(1,0,0);
+      const sideAxis = new THREE.Vector3().crossVectors(up, parentDir).normalize(); // 父方向的"左右"
+      const upAxis   = new THREE.Vector3().crossVectors(parentDir, sideAxis).normalize();
+      siblings.forEach((n, i) => {
+        const rp = relPts[i].clone();
+        // side 轻推（不改变距离父的半径，仅在正交父方向上偏移）
+        if (n.side === 'L') rp.addScaledVector(sideAxis, -0.45);
+        if (n.side === 'R') rp.addScaledVector(sideAxis, +0.45);
+        // 稳定性小抖动：避免 3+ 兄弟在父方向上精确共线，沿 upAxis 做 ±0.2 偏移
+        const stability = Math.sin(i * 2.37 + n.id.length * 0.7) * 0.2;
+        rp.addScaledVector(upAxis, stability);
+        positions[n.id] = new THREE.Vector3().copy(parentPos).add(rp);
+      });
+    });
+  });
+
+  document.getElementById('hudStats').innerHTML =
+    `🌐 <b>${valid.length}</b> 节点 · 🔗 <b>${valid.filter(x=>x.link&&x.link.trim()).length}</b> 可跳转 · ➖ <b>${valid.filter(x=>x.parentId).length}</b> 连线`;
+
+  // 连线：三种类型
+  // - type='parent' 原生父子关系（按层级配色）
+  // - type='extraParent' 额外父节点继承线（橙色 #fb923c，虚线感用颜色区分近似）
+  // - type='cross' 跨链接（青色 #22d3ee）
+  const posN = [], colN = [], posH = [], colH = [];
+  function _addLink(sId, tId, col, type) {
+    const sp = positions[sId], tp = positions[tId];
+    if (!sp || !tp) return;
+    posN.push(sp.x,sp.y,sp.z, tp.x,tp.y,tp.z);
+    colN.push(col[0],col[1],col[2], col[0],col[1],col[2]);
+    posH.push(sp.x,sp.y,sp.z, tp.x,tp.y,tp.z);
+    // HL 统一金黄
+    colH.push(1,0.745,0.216, 1,0.745,0.216);
+    linkInfo.push({ sId, tId, type: type||'parent' });
+  }
+  valid.forEach(n => {
+    if (n.parentId) _addLink(n.parentId, n.id, (()=>{
+      const lv = Math.min(n.level, 3);
+      if (lv===1) return [0.659, 0.333, 0.969];
+      if (lv===2) return [0.925, 0.282, 0.600];
+      return [0.392, 0.455, 0.545];
+    })(), 'parent');
+    // extraParents
+    parseExtraParents(n).forEach(pid => {
+      _addLink(pid, n.id, [0.984, 0.573, 0.235], 'extraParent'); // #fb923c
+    });
+    // crossLinks
+    parseCrossLinks(n).forEach(pid => {
+      // 避免重复添加：sId 字典序在前，保证 (A,B) 只加一次
+      if (n.id < pid) _addLink(n.id, pid, [0.133, 0.827, 0.933], 'cross'); // #22d3ee
+    });
+  });
+  if (posN.length) {
+    const gN = new THREE.BufferGeometry();
+    gN.setAttribute('position', new THREE.Float32BufferAttribute(posN, 3));
+    gN.setAttribute('color', new THREE.Float32BufferAttribute(colN, 3));
+    linkMatNormal = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending });
+    linkLinesNormal = new THREE.LineSegments(gN, linkMatNormal);
+    linksGroup.add(linkLinesNormal);
+
+    const gH = new THREE.BufferGeometry();
+    gH.setAttribute('position', new THREE.Float32BufferAttribute(posH, 3));
+    gH.setAttribute('color', new THREE.Float32BufferAttribute(colH, 3));
+    linkMatHL = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
+    linkLinesHL = new THREE.LineSegments(gH, linkMatHL);
+    linkLinesHL.renderOrder = 1;
+    linksGroup.add(linkLinesHL);
+  }
+
+  // 节点
+  valid.forEach(n => {
+    if (!positions[n.id]) return;
+    const sz = sizeOf(n.level);
+    const color = n.color || '#34d399';
+    const ballTex = makeBallTexture(color, n.style, n.id);
+    const ballMat = new THREE.SpriteMaterial({ map: ballTex, transparent: true, depthWrite: false });
+    const ball = new THREE.Sprite(ballMat);
+    ball.scale.set(sz.sprite, sz.sprite, 1);
+
+    const txt = n.text.length > 10 ? n.text.slice(0,9)+'…' : n.text;
+    const lCol = n.level<=1 ? '#fff' : (n.level===2 ? '#e0e7ff' : '#cbd5e1');
+    const { tex: lt, w, h } = makeLabelTexture(txt, lCol);
+    const lMat = new THREE.SpriteMaterial({ map: lt, transparent: true, depthWrite: false });
+    const label = new THREE.Sprite(lMat);
+    const asp = w/h, lH = sz.label;
+    label.scale.set(lH*asp, lH, 1);
+    label.position.y = -sz.sprite*0.55 - lH*0.55;
+
+    let linkIcon = null;
+    if (n.link && n.link.trim()) {
+      const { tex:it } = makeLabelTexture('🔗', '#fbbf24');
+      linkIcon = new THREE.Sprite(new THREE.SpriteMaterial({ map: it, transparent: true, depthWrite: false }));
+      const ia = 1;
+      linkIcon.scale.set(lH*0.55*ia, lH*0.55, 1);
+      linkIcon.position.y = sz.sprite*0.6 + lH*0.2;
+    }
+
+    const g = new THREE.Group();
+    g.add(ball); g.add(label); if (linkIcon) g.add(linkIcon);
+    g.position.copy(positions[n.id]);
+    nodesGroup.add(g);
+
+    nodeMeshes.push({
+      group: g, ball, label, linkIcon, raw: n,
+      basePos: positions[n.id].clone(), pos: g.position,
+      floatPhase: Math.random()*Math.PI*2, baseScale: sz.sprite,
+      linkIdxPairs: []
+    });
+  });
+
+  // 回填 linkIdxPairs + sMesh/tMesh 引用（animate 每帧更新连线端点用）
+  const byIdMesh = {}; nodeMeshes.forEach(m => byIdMesh[m.raw.id] = m);
+  linkInfo.forEach((info, i) => {
+    info.sMesh = byIdMesh[info.sId] || null;
+    info.tMesh = byIdMesh[info.tId] || null;
+    if (info.sMesh) info.sMesh.linkIdxPairs.push(i);
+    if (info.tMesh) info.tMesh.linkIdxPairs.push(i);
+  });
+
+  // ============ 重新加同心球层：后半球壳 + 近端淡出 ============
+  (function addShells(){
+    if (!shellsGroup) return;
+    // 找 root 颜色作为默认 shell 颜色
+    const rootNode = g_nodes.find(n => n.id === 'root');
+    shellColorDefault = new THREE.Color((rootNode && rootNode.color) || '#38bdf8');
+    function makeShellMat(initColor, baseAlpha) {
+      return new THREE.ShaderMaterial({
+        uniforms: {
+          uColor: { value: new THREE.Color(initColor) },
+          uBaseAlpha: { value: baseAlpha },
+          uTime: { value: 0.0 },
+        },
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        // BackSide：看球壳"内表面"；结合下面 fragment 的 backMask：只显示后半球内层
+        side: THREE.BackSide,
+        vertexShader: `
+          varying vec3 vWorldNormal;
+          varying vec3 vWorldPos;
+          varying vec3 vObjPos;
+          void main(){
+            vObjPos = position;
+            vec4 worldPos = modelMatrix * vec4(position, 1.0);
+            vWorldPos = worldPos.xyz;
+            vWorldNormal = normalize(mat3(modelMatrix) * normal);
+            gl_Position = projectionMatrix * viewMatrix * worldPos;
+          }
+        `,
+        fragmentShader: `
+          precision highp float;
+          varying vec3 vWorldNormal;
+          varying vec3 vWorldPos;
+          varying vec3 vObjPos;
+          uniform vec3 uColor;
+          uniform float uBaseAlpha;
+          uniform float uTime;
+
+          // ============================================================
+          // 工具：哈希 / 值噪声 / fbm（只用于泛光边缘的微呼吸，不做结构纹理）
+          // ============================================================
+          float hash31(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7)))*43758.5453); }
+          float vnoise3(vec3 p){
+            vec3 i = floor(p); vec3 f = fract(p);
+            f = f*f*(3.0-2.0*f);
+            float n000 = hash31(i + vec3(0,0,0));
+            float n100 = hash31(i + vec3(1,0,0));
+            float n010 = hash31(i + vec3(0,1,0));
+            float n110 = hash31(i + vec3(1,1,0));
+            float n001 = hash31(i + vec3(0,0,1));
+            float n101 = hash31(i + vec3(1,0,1));
+            float n011 = hash31(i + vec3(0,1,1));
+            float n111 = hash31(i + vec3(1,1,1));
+            float nx00 = mix(n000, n100, f.x);
+            float nx10 = mix(n010, n110, f.x);
+            float nx01 = mix(n001, n101, f.x);
+            float nx11 = mix(n011, n111, f.x);
+            float nxy0 = mix(nx00, nx10, f.y);
+            float nxy1 = mix(nx01, nx11, f.y);
+            return mix(nxy0, nxy1, f.z);
+          }
+          float fbm3(vec3 p){
+            float v = 0.0; float a = 0.5; float s = 1.0;
+            for(int i=0;i<4;i++){
+              v += a * vnoise3(p * s);
+              s *= 2.02;
+              a *= 0.5;
+            }
+            return v;
+          }
+          // 屏幕中心 → 外围淡出：uv 是 vWorldPos.xy/R（-1..1）
+          float radialFade(vec2 uv){
+            float r = length(uv);
+            return 1.0 - smoothstep(0.28, 1.02, r);
+          }
+
+          void main(){
+            vec3 V = normalize(cameraPosition - vWorldPos);
+            vec3 N = normalize(vWorldNormal);
+            float NdotV = dot(N, V);
+
+            float R = length(vWorldPos);
+
+            // ============================================================
+            // 可见性：只看后半球壳的内表面（R_SHELL 比相机 z 大，相机在球壳内）
+            // ============================================================
+            float t = dot(vWorldPos, V);          // t>0 前半球 / t<0 后半球
+            float backMask = step(t, 0.0001);
+            // 赤道软过渡：从 t=0（赤道）向 t=-R*0.12（约 12% 深度）逐渐加强"可见"→ 反过来"边缘软过渡"
+            float eqSoft = smoothstep(0.0001, -R * 0.12, t);   // 赤道 12% 厚度做柔和过渡
+            backMask *= eqSoft;
+            backMask = clamp(backMask, 0.0, 1.0);
+
+            vec2 uv = vWorldPos.xy / max(R, 0.001);
+            float radial = radialFade(uv);
+            float edge = 1.0 - abs(NdotV);
+            float sideFade = 1.0 - smoothstep(0.78, 0.998, edge);
+
+            float vis = backMask;
+            vis *= mix(1.0, sideFade, 0.85);
+            vis = clamp(vis, 0.0, 1.0);
+
+            // ============================================================
+            // 边缘淡淡泛光（不再做点线/等高线/复杂纹理）
+            // ============================================================
+            // 1) 球面坐标 → 用于泛光边缘的低频呼吸扰动（让光晕不是机械圆环）
+            vec3 sp = normalize(vWorldPos);
+            float breath = sin(uTime * 0.6) * 0.5 + 0.5;   // 0..1 慢呼吸
+            float haloJitter = fbm3(sp * 1.25 + vec3(uTime*0.05, uTime*0.03, uTime*0.04));
+            haloJitter = haloJitter * 0.16 - 0.08;         // -0.08..0.08 小范围抖动
+
+            // 2) 赤道边缘（后半球可见边界附近）泛光：越接近赤道越亮一层柔和 halo
+            float eqDist = abs(t) / max(R, 0.001);          // 0 贴赤道 → 1 靠近球心方向
+            // 让"距赤道一定厚度的环带"亮一层：eqDist 在 0.02~0.14 的带状加亮
+            float eqBand = smoothstep(0.00, 0.04 + haloJitter*0.2, eqDist)
+                         * (1.0 - smoothstep(0.06 + haloJitter*0.2, 0.18 + haloJitter*0.4, eqDist));
+            eqBand = clamp(eqBand, 0.0, 1.0);
+
+            // 3) 屏幕径向边缘（接近屏幕外围 r≈0.85~1.0 的地方）泛光：边缘淡淡的一层 glow
+            float r = length(uv);
+            float rimBand = smoothstep(0.52, 0.86 + haloJitter*0.25, r)
+                          * (1.0 - smoothstep(0.86 + haloJitter*0.25, 1.06, r));
+            rimBand = clamp(rimBand, 0.0, 1.0);
+
+            // 4) 合两种边缘泛光，乘一点呼吸 → 强度浮动
+            float edgeGlow = (eqBand * 0.55 + rimBand * 0.70) * (0.75 + breath * 0.50);
+
+            // ============================================================
+            // 颜色合成：淡天幕底 + 边缘淡淡泛光（极简，无任何点线结构）
+            // ============================================================
+            vec3 baseCol = pow(uColor, vec3(0.86));
+            // 淡天幕底（淡淡的占大片后部空间）
+            vec3 domeCol = baseCol * (0.14 + 0.20 * radial + 0.08 * (0.5 + 0.5*sin(uTime*0.25 + vWorldPos.y*0.5)));
+            // 泛光色：比天幕稍微亮/偏青紫一点，量要淡 → 始终"淡淡"
+            vec3 glowCol = baseCol * vec3(1.65, 1.75, 2.05);
+            glowCol += vec3(0.09, 0.05, 0.18);
+
+            vec3 c = domeCol + glowCol * edgeGlow * 0.42;
+
+            // Alpha：整体淡；径向做中心强/外围弱；边缘泛光处再加强一点点
+            float a = uBaseAlpha * vis;
+            a *= (0.32 + 0.98 * radial);
+            a *= (1.0 + edgeGlow * 0.55);
+            a = clamp(a, 0.0, 0.6);
+
+            gl_FragColor = vec4(c, a);
+            if (gl_FragColor.a < 0.0025) discard;
+          }
+        `
+      });
+    }
+    // 单层壳：半径放大到 16.5（相机默认 z=15 在球壳内），主视角只能看到"后半球内层天幕"，看不到整个球的边界
+    const R_SHELL = 16.5;
+    shellMatOuter = makeShellMat(shellColorDefault, 0.24);
+    const geomSingle = new THREE.SphereGeometry(R_SHELL, 160, 120);
+    shellMeshOuter = new THREE.Mesh(geomSingle, shellMatOuter);
+    shellsGroup.add(shellMeshOuter);
+    shellMeshInner = null;
+    shellMatInner = null;
+    if (positions.root) shellsGroup.position.copy(positions.root);
+  })();
+}
+
+/* ============ 交互 ============ */
+function updatePointer(ev) {
+  const canvas = document.getElementById('threeCanvas');
+  const rect = canvas.getBoundingClientRect();
+  pointer.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+}
+function onPointerMove(ev) {
+  // 在原有 hover 判定之前累加拖动判断
+  if (_dragStart) {
+    const dx = ev.clientX - _dragStart.x;
+    const dy = ev.clientY - _dragStart.y;
+    if (dx*dx + dy*dy > DRAG_THRESHOLD*DRAG_THRESHOLD) { _dragMoved = true; }
+  }
+  updatePointer(ev);
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObjects(nodeMeshes.map(m=>m.ball), false);
+  let nh = null;
+  if (hits.length) {
+    const b = hits[0].object;
+    nh = nodeMeshes.find(m => m.ball === b) || null;
+  }
+  if (nh !== hovered) applyHover(nh);
+  const tt = document.getElementById('nodeTooltip');
+  if (hovered) {
+    tt.style.display = 'block';
+    const gap = 12;
+    const w = tt.offsetWidth, h = tt.offsetHeight;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    let x = ev.clientX + gap;
+    let y = ev.clientY + gap;
+    // 贴到视口右/下边缘时自动翻到鼠标左侧/上方，避免被裁掉
+    if (x + w > vw) x = Math.max(0, ev.clientX - w - gap);
+    if (y + h > vh) y = Math.max(0, ev.clientY - h - gap);
+    tt.style.left = x + 'px';
+    tt.style.top  = y + 'px';
+  } else {
+    tt.style.display = 'none';
+  }
+}
+// 双击判定辅助
+let _clkPendingTimer = null;
+let _clkPendingMesh = null;
+// 拖动判定辅助
+let _dragStart = null;       // pointerdown 起点 {x,y}
+let _dragMoved = false;      // 是否超过阈值判定为拖动
+const DRAG_THRESHOLD = 6;    // 像素
+// 空白双击退出
+let _lastBlankClickAt = 0;
+function clearPendingClick(){
+  if (_clkPendingTimer) { clearTimeout(_clkPendingTimer); _clkPendingTimer = null; }
+  _clkPendingMesh = null;
+}
+function onKeyEv(ev){
+  if (ev.key === 'Escape' && focused) { clearFocus(); ev.preventDefault(); }
+}
+function onPointerDownEv(ev){
+  if (ev.button !== undefined && ev.button !== 0) return; // 只响应左键
+  _dragStart = { x: ev.clientX, y: ev.clientY };
+  _dragMoved = false;
+}
+function onPointerUpEv(){
+  // 拖动结束清空起点，下一帧 _dragMoved 仍保留到 click 事件检查完
+  setTimeout(()=>{ _dragStart = null; }, 0);
+}
+function applyHover(nh) {
+  // ===== 悬停停自转：只在"从无到有 / 从有到无"的状态边界切换一次 =====
+  if (hovered === null && nh !== null) {
+    // 无 -> 有：记录当前用户偏好，停止自转
+    userAutoRotate = autoRotate;
+    autoRotate = false;
+  } else if (hovered !== null && nh === null) {
+    // 有 -> 无：恢复进入悬停前的用户偏好
+    autoRotate = userAutoRotate;
+  } // 其他情况（从一个节点移到另一个节点）：保持已暂停状态，不用更新
+
+  nodeMeshes.forEach(m => {
+    const s = m.baseScale;
+    m.ball.scale.set(s,s,1);
+    m.ball.material.opacity = 1;
+    if (m.label) m.label.material.opacity = 1;
+  });
+  if (linkMatNormal) linkMatNormal.opacity = 0.55;
+  if (linkMatHL) linkMatHL.opacity = 0;
+
+  hovered = nh;
+  const canvas = document.getElementById('threeCanvas');
+  if (!nh) { canvas.style.cursor = 'grab'; return; }
+
+  const s = nh.baseScale * 1.45;
+  nh.ball.scale.set(s,s,1);
+
+  const rel = new Set([nh.raw.id]);
+  if (nh.raw.parentId) rel.add(nh.raw.parentId);
+  nodeMeshes.forEach(m => { if (m.raw.parentId === nh.raw.id) rel.add(m.raw.id); });
+  nodeMeshes.forEach(m => {
+    if (!rel.has(m.raw.id)) {
+      m.ball.material.opacity = 0.22;
+      if (m.label) m.label.material.opacity = 0.22;
+    }
+  });
+  if (linkMatNormal) linkMatNormal.opacity = 0.1;
+  if (linkMatHL) linkMatHL.opacity = 0;
+
+  const tt = document.getElementById('nodeTooltip');
+  const hasLink = nh.raw.link && nh.raw.link.trim();
+  tt.innerHTML = `
+    <div class="tt-title">${escapeHtml(nh.raw.text)}</div>
+    <div style="color:#cbd5e1;">层级：<b style="color:#e0e7ff;">L${nh.raw.level}</b> &nbsp; 样式：<b style="color:#e0e7ff;">${nh.raw.style}</b></div>
+    ${hasLink
+      ? `<div class="tt-link">🔗 ${escapeHtml(nh.raw.link)}</div><div style="font-size:10px;color:#34d399;margin-top:3px;">✓ 单击聚焦，双击跳转</div>`
+      : `<div class="tt-link" style="color:#94a3b8;">○ 暂未设置链接（编辑面板可补充）</div><div style="font-size:10px;color:#60a5fa;margin-top:3px;">单击节点聚焦</div>`}
+    <div class="tt-meta">父节点：${escapeHtml(nh.raw.parentId||'-')} &nbsp; ID：${escapeHtml(nh.raw.id)}</div>`;
+  canvas.style.cursor = hasLink ? 'pointer' : 'grab';
+}
+// 真正对外的 click 入口：先判断是否是拖动，再执行节点/空白/双击/单击判定
+function onCanvasClickSafe(ev) {
+  const moved = _dragMoved;
+  _dragMoved = false; // 本轮消费掉
+  if (moved) { clearPendingClick(); return; } // 拖动 → 任何动作都不做（尤其不清聚焦）
+  _dispatchClickInner(ev);
+}
+function _dispatchClickInner(ev) {
+  // ===== 先判断命中 =====
+  updatePointer(ev);
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObjects(nodeMeshes.map(m=>m.ball), false);
+  let nh = null;
+  if (hits.length) {
+    const b = hits[0].object;
+    nh = nodeMeshes.find(m => m.ball === b) || null;
+  }
+
+  // 情况 1：点击空白 —— 不再单击清聚焦，改为"双击空白退出 + Esc 退出"
+  if (!nh) {
+    clearPendingClick();
+    const now = Date.now();
+    if (focused && now - _lastBlankClickAt < 320) {
+      _lastBlankClickAt = 0;
+      clearFocus();
+    } else {
+      _lastBlankClickAt = now;
+    }
+    return;
+  }
+
+  // 情况 2：点中节点 —— 做双击 / 单击判定
+  if (_clkPendingMesh === nh && _clkPendingTimer) {
+    // 第二次点击（间隔 < 250ms）→ 判定为双击 → 跳转链接
+    clearPendingClick();
+    const href = nh.raw.link && nh.raw.link.trim();
+    if (href) {
+      window.open(href, '_blank', 'noopener,noreferrer');
+    } else {
+      // 无链接但双击：仍然当作聚焦切换
+      if (focused === nh) clearFocus();
+      else applyFocus(nh);
+    }
+    return;
+  }
+
+  // 第一次点击：登记 pending，250ms 内没有再次点击同一节点则判定为单击 → 聚焦
+  clearPendingClick();
+  _clkPendingMesh = nh;
+  _clkPendingTimer = setTimeout(() => {
+    _clkPendingTimer = null;
+    const target = _clkPendingMesh;
+    _clkPendingMesh = null;
+    if (!target) return;
+    if (focused === target) {
+      // 已经在聚焦这个节点 → 取消聚焦
+      clearFocus();
+    } else {
+      applyFocus(target);
+    }
+  }, 250);
+}
+function escapeHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+/* ============ 聚焦（中心模式）相关 ============ */
+function _splitIds(s){
+  return String(s||'').split(/[,，\s;；]+/).map(x=>x.trim()).filter(Boolean);
+}
+function parseCrossLinks(n){ return _splitIds(n && n.crossLinks); }
+function parseExtraParents(n){ return _splitIds(n && n.extraParents); }
+// 计算相关节点：中心 + 整条父链（到root） + 所有后代 + extraParents 双向 + crossLinks 双向
+function getRelatedIds(centerRaw){
+  if (!centerRaw) return new Set();
+  const byId = {}; g_nodes.forEach(n => byId[n.id] = n);
+  const rel = new Set([centerRaw.id]);
+
+  // 父链向上
+  let cur = centerRaw;
+  while (cur && cur.parentId && byId[cur.parentId]) {
+    rel.add(cur.parentId);
+    cur = byId[cur.parentId];
+  }
+  // 额外父链向上
+  (function addExtraUp(node){
+    if (!node) return;
+    parseExtraParents(node).forEach(pid => {
+      if (byId[pid] && !rel.has(pid)) { rel.add(pid); addExtraUp(byId[pid]); }
+    });
+    // crossLinks 也是 related
+    parseCrossLinks(node).forEach(xid => { if (byId[xid]) rel.add(xid); });
+  })(centerRaw);
+
+  // 后代（深度优先，含原生子 + extraParents 作为反向的子）
+  const childrenOf = {};
+  g_nodes.forEach(n => {
+    if (n.parentId) {
+      if (!childrenOf[n.parentId]) childrenOf[n.parentId] = [];
+      childrenOf[n.parentId].push(n.id);
+    }
+    // 反向 extraParents：如果 n 有 extraParents=X，则 X 把 n 视为"外部子"
+    parseExtraParents(n).forEach(pid => {
+      if (!childrenOf[pid]) childrenOf[pid] = [];
+      if (childrenOf[pid].indexOf(n.id) === -1) childrenOf[pid].push(n.id);
+    });
+  });
+  (function dfs(id){
+    const arr = childrenOf[id] || [];
+    arr.forEach(cid => {
+      if (!rel.has(cid)) {
+        rel.add(cid);
+        dfs(cid);
+      }
+    });
+    // crossLinks 双向扩散：若后代中有 crossLinks 指向外节点，也算 related（拉过来）
+    const n = byId[id];
+    if (n) parseCrossLinks(n).forEach(xid => { if (byId[xid]) rel.add(xid); });
+  })(centerRaw.id);
+
+  // crossLinks 反向指向中心的节点也加进来
+  g_nodes.forEach(n => {
+    if (parseCrossLinks(n).indexOf(centerRaw.id) !== -1) rel.add(n.id);
+    if (parseExtraParents(n).indexOf(centerRaw.id) !== -1) rel.add(n.id);
+  });
+
+  return rel;
+}
+
+// 半球锥分布：给定父方向（单位向量），生成 N 个围绕该方向均匀分布的方向点，锥半角 coneHalf，距离 radius
+function coneAroundAxis(dir, n, coneHalf, radius){
+  const out = [];
+  if (n <= 0) return out;
+  const phi = Math.PI * (3 - Math.sqrt(5));
+  const up = Math.abs(dir.y) < 0.9 ? new THREE.Vector3(0,1,0) : new THREE.Vector3(1,0,0);
+  const xAxis = new THREE.Vector3().crossVectors(up, dir).normalize();
+  const yAxis = new THREE.Vector3().crossVectors(dir, xAxis).normalize();
+  for (let i = 0; i < n; i++) {
+    const k = n === 1 ? 0 : i / (n - 1);
+    // 纬度：0 ~ coneHalf；经度：golden 分布
+    const theta = coneHalf * Math.sqrt(k);  // 均匀面密度
+    const azimuth = phi * i;
+    const local = new THREE.Vector3(
+      Math.sin(theta) * Math.cos(azimuth),
+      Math.sin(theta) * Math.sin(azimuth),
+      Math.cos(theta)
+    );
+    // local.z 对齐 dir 方向
+    const world = new THREE.Vector3()
+      .addScaledVector(xAxis, local.x)
+      .addScaledVector(yAxis, local.y)
+      .addScaledVector(dir,   local.z)
+      .multiplyScalar(radius);
+    out.push(world);
+  }
+  return out;
+}
+
+// 计算聚焦目标位置：严格方向指向性树（父+子同层均分球面，不自由生长）
+//   - 中心节点 (0,0,0)
+//   - 直接父 + 直接子：合并为"第一壳层"，围绕中心球面均匀分布（均分球面，父/子同壳不堆叠）
+//   - 祖先链（直接父之上）：沿"各自直接父的朝外方向"依次顺延（每个父分支独立，保持指向）
+//   - 孙辈及以后：沿父朝外方向锥延伸（步长 ≈ radiusFor 级差 2.45）
+//   - crossLinks/外来点：外层壳
+function calcFocusTargets(centerMesh){
+  const targets = new Map();
+  if (!centerMesh) return targets;
+  const cid = centerMesh.raw.id;
+  const byId = {}; g_nodes.forEach(n => byId[n.id] = n);
+  const related = getRelatedIds(centerMesh.raw);
+  related.delete(cid);
+
+  // ---- 0) childrenOf 构建 + 半径工具 ----
+  const childrenOf = {};
+  g_nodes.forEach(n => {
+    if (n.parentId) {
+      if (!childrenOf[n.parentId]) childrenOf[n.parentId] = [];
+      childrenOf[n.parentId].push(n.id);
+    }
+    parseExtraParents(n).forEach(pid => {
+      if (!childrenOf[pid]) childrenOf[pid] = [];
+      if (childrenOf[pid].indexOf(n.id) === -1) childrenOf[pid].push(n.id);
+    });
+  });
+  function radiusForLocal(diff, kidsCount){
+    const base = ({1:2.9, 2:5.35, 3:7.85, 4:10.35, 5:12.85})[Math.min(diff,5)] || 15.4;
+    const extra = Math.max(0, kidsCount - 2) * (diff===1 ? 0.34 : 0.24);
+    return base + extra;
+  }
+
+  // ---- 1) 中心 ----
+  targets.set(cid, new THREE.Vector3(0,0,0));
+
+  // ---- 2) 第一壳层：直接父 ∪ 直接子，合并均匀球面分布（父参与同层避免重叠）----
+  const directParents = [];
+  if (centerMesh.raw.parentId) directParents.push(centerMesh.raw.parentId);
+  parseExtraParents(centerMesh.raw).forEach(pid => { if (pid) directParents.push(pid); });
+  const uniqParents = directParents.filter((v,i,a) => a.indexOf(v)===i && related.has(v));
+  const directChildren = (childrenOf[cid] || []).filter(kid => related.has(kid));
+  const firstShellIds = uniqParents.slice();
+  directChildren.forEach(x => { if (firstShellIds.indexOf(x) === -1) firstShellIds.push(x); });
+  const R1 = radiusForLocal(1, firstShellIds.length);
+  if (firstShellIds.length) {
+    // 稳定性排序：先父 → 后子 → ID 序（保证同一节点多次落在球面同位置）
+    const sortedIds = firstShellIds.slice().sort((a,b) => {
+      const ap = uniqParents.indexOf(a) >= 0 ? 0 : 1;
+      const bp = uniqParents.indexOf(b) >= 0 ? 0 : 1;
+      if (ap !== bp) return ap - bp;
+      return a.localeCompare(b);
+    });
+    const pts = fiboSpherePoints(sortedIds.length, R1);
+    sortedIds.forEach((id, i) => targets.set(id, pts[i]));
+  }
+
+  // ---- 3) 祖先链（每个直接父之上）沿各自直接父的朝外方向顺延（各分支独立）----
+  const ANCESTOR_STEP = 2.45;
+  const placedAnc = new Set();
+  uniqParents.forEach(pid => {
+    if (!targets.has(pid)) return;
+    let currId = pid;
+    let stepCount = 0;
+    while (true) {
+      const curr = byId[currId];
+      if (!curr || !curr.parentId) break;
+      const gid = curr.parentId;
+      if (!related.has(gid)) break;
+      if (placedAnc.has(gid) || targets.has(gid)) {
+        currId = gid; stepCount++; continue;
+      }
+      const directParentPos = targets.get(pid);
+      const outward = directParentPos.clone().normalize();
+      const distFromCenter = R1 + (stepCount + 1) * ANCESTOR_STEP;
+      const world = outward.clone().multiplyScalar(distFromCenter);
+      // 正交父方向侧偏移 ±0.25 防共线，不破坏锥指向
+      const up = Math.abs(outward.y) < 0.9 ? new THREE.Vector3(0,1,0) : new THREE.Vector3(1,0,0);
+      const sideAxis = new THREE.Vector3().crossVectors(up, outward).normalize();
+      const upAxis   = new THREE.Vector3().crossVectors(outward, sideAxis).normalize();
+      const jitter  = Math.sin((pid.length + gid.length + stepCount) * 1.7) * 0.28;
+      const jitter2 = Math.cos((pid.length + stepCount) * 1.3) * 0.18;
+      world.addScaledVector(sideAxis, jitter);
+      world.addScaledVector(upAxis,   jitter2);
+      placedAnc.add(gid);
+      targets.set(gid, world);
+      currId = gid;
+      stepCount++;
+    }
+  });
+
+  // ---- 4) 孙辈及以后：沿父相对中心的朝外方向锥延伸 ----
+  function coneHalfFor(diff, kidsCount){
+    const base = (diff === 2) ? 56 : (diff === 3 ? 63 : (diff === 4 ? 67 : 70));
+    return Math.min(70, base + kidsCount * 2.5) * Math.PI / 180;
+  }
+  const queue = [{ id: cid, levelDiff: 0 }];
+  const queued = new Set([cid]);
+  while (queue.length) {
+    const head = queue.shift();
+    const pRaw = byId[head.id]; if (!pRaw) continue;
+    const kids = (childrenOf[head.id] || []).filter(kid => related.has(kid));
+    if (!kids.length) continue;
+
+    const diff = head.levelDiff + 1;
+    const parentPos = targets.get(head.id);
+    if (!parentPos) {
+      kids.forEach(kid => { if (!queued.has(kid)) { queued.add(kid); queue.push({ id: kid, levelDiff: diff }); } });
+      continue;
+    }
+    const R_PARENT = parentPos.length();
+    const R_CHILD_ABS = radiusForLocal(diff, kids.length);
+    const R_PARENT_ABS = head.levelDiff === 0 ? 0 : radiusForLocal(head.levelDiff, 2);
+    const step = Math.max(2.2, R_CHILD_ABS - R_PARENT_ABS);
+
+    if (head.levelDiff === 0) {
+      const remaining = kids.filter(kid => !targets.has(kid) && !queued.has(kid));
+      if (remaining.length) {
+        const pts = fiboSpherePoints(remaining.length, R_CHILD_ABS);
+        remaining.forEach((kid, i) => {
+          if (!targets.has(kid)) targets.set(kid, pts[i]);
+          if (!queued.has(kid)) { queued.add(kid); queue.push({ id: kid, levelDiff: diff }); }
+        });
+      }
+      kids.forEach(kid => { if (!queued.has(kid)) { queued.add(kid); queue.push({ id: kid, levelDiff: diff }); } });
+    } else {
+      const outward = parentPos.clone().normalize();
+      const coneHalf = coneHalfFor(diff, kids.length);
+      const needPlace = kids.filter(kid => !targets.has(kid) && !queued.has(kid));
+      if (needPlace.length) {
+        const relPts = coneWorldPoints(outward, needPlace.length, coneHalf, step);
+        const up = Math.abs(outward.y) < 0.9 ? new THREE.Vector3(0,1,0) : new THREE.Vector3(1,0,0);
+        const sideAxis = new THREE.Vector3().crossVectors(up, outward).normalize();
+        const upAxis   = new THREE.Vector3().crossVectors(outward, sideAxis).normalize();
+        needPlace.forEach((kid, i) => {
+          const rp = relPts[i].clone();
+          const raw = byId[kid];
+          if (raw) {
+            if (raw.side === 'L') rp.addScaledVector(sideAxis, -0.35);
+            if (raw.side === 'R') rp.addScaledVector(sideAxis, +0.35);
+          }
+          const stab = Math.sin(i * 2.37 + kid.length * 0.6) * 0.18;
+          rp.addScaledVector(upAxis, stab);
+          const world = new THREE.Vector3().copy(parentPos).add(rp);
+          const d = world.length();
+          if (d < R_PARENT + 0.6) world.setLength(R_PARENT + 0.6);
+          if (!targets.has(kid)) targets.set(kid, world);
+          if (!queued.has(kid)) { queued.add(kid); queue.push({ id: kid, levelDiff: diff }); }
+        });
+      }
+      kids.forEach(kid => { if (!queued.has(kid)) { queued.add(kid); queue.push({ id: kid, levelDiff: diff }); } });
+    }
+  }
+
+  // ---- 5) crossLinks/extraParents 外部相关点（related 但不在父链/子树中）：外层壳 ----
+  const others = [];
+  related.forEach(id => { if (!targets.has(id) && id !== cid) others.push(id); });
+  if (others.length) {
+    const R_OUT = 6.6;
+    const pts = fiboSpherePoints(others.length, R_OUT);
+    others.sort().forEach((id, i) => { targets.set(id, pts[i]); });
+  }
+
+  return targets;
+}
+// 平滑过渡（easeInOutCubic）
+function easeInOut(t){ return t<0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2; }
+// 进入聚焦
+function applyFocus(centerMesh){
+  if (!centerMesh) return;
+  // ---------- A → B 平滑切换：拍当前每个节点实际 pos 快照 ----------
+  if (focused && focused !== centerMesh) {
+    focusSnapshot = new Map();
+    nodeMeshes.forEach(m => { focusSnapshot.set(m.raw.id, m.pos.clone()); });
+    focusT = 0; // 强制从 0 过渡到新 targets
+  } else if (!focused) {
+    // 原状进入：无需 snapshot（起点就是 basePos + 浮动）
+    focusSnapshot = null;
+  }
+  focused = centerMesh;
+  focusTargets = calcFocusTargets(centerMesh);
+  focusRelatedSet = getRelatedIds(centerMesh.raw);
+  focusDir = 1;
+  showToast('聚焦：' + centerMesh.raw.text + '（再次点击其他节点平滑切换，点击空白退出）');
+}
+// 退出聚焦
+function clearFocus(){
+  if (!focused) return;
+  // 退出时也要快照当前 pos，平滑回到原状
+  focusSnapshot = new Map();
+  nodeMeshes.forEach(m => { focusSnapshot.set(m.raw.id, m.pos.clone()); });
+  focused = null;
+  focusTargets = null;
+  focusRelatedSet = null;
+  focusT = 1; // 从 1 → 0 反向过渡；起点是 snapshot，终点是 basePos + 浮动
+  focusDir = -1;
+  showToast('已退出聚焦');
+}
+
+/* ============ 动画循环 ============ */
+const clock = new THREE.Clock();
+// 自转用户偏好记忆（在悬停/聚焦导致停转时，恢复用）
+let userAutoRotate = true;
+function animate() {
+  const dt = Math.min(clock.getDelta(), 0.05); // 限制 dt 避免跳帧
+  const t = clock.getElapsedTime();
+
+  // ===== 聚焦过渡 T 更新 =====
+  if (focusDir !== 0) {
+    const SPEED = 2.0;
+    focusT = Math.max(0, Math.min(1, focusT + focusDir * SPEED * dt));
+    if (focusT <= 0) {
+      focusT = 0;
+      focusDir = 0;
+      // 完成时强制一次相机/控制点终值对齐（避免 0.2 级残差）
+      if (controls && camera) {
+        controls.target.set(0, 0.1, 0);
+        camera.position.z = 15;
+      }
+    }
+    if (focusT >= 1) {
+      focusT = 1;
+      focusDir = 0;
+      if (focused && controls && camera && focusTargets && focusTargets.has(focused.raw.id)) {
+        const tgt = focusTargets.get(focused.raw.id);
+        controls.target.set(tgt.x, tgt.y - 0.35, tgt.z);
+        camera.position.z = 10.8;
+      }
+    }
+  }
+  // 过渡完成清除快照，恢复自由浮动
+  if (focusT <= 0 && focusSnapshot) focusSnapshot = null;
+  if (focusT >= 1 && focusSnapshot) focusSnapshot = null;
+  const ft = easeInOut(focusT);
+
+  // ===== 同心球层：位置/颜色过渡 =====
+  if (shellsGroup) {
+    let baseCenter = new THREE.Vector3(0,0,0);
+    const rootMesh = nodeMeshes.find(m => m.raw.id === 'root');
+    if (rootMesh) baseCenter = rootMesh.basePos.clone();
+    let targetCenter = baseCenter.clone();
+    let targetColor = shellColorDefault.clone();
+    if (focused && ft > 1e-6) {
+      // 聚焦模式：新球心就是聚焦节点的聚焦目标位置（通常 0,0,0）
+      targetCenter = focusTargets && focusTargets.has(focused.raw.id)
+        ? focusTargets.get(focused.raw.id).clone()
+        : new THREE.Vector3(0,0,0);
+      try { targetColor = new THREE.Color(focused.raw.color || '#38bdf8'); } catch(e){}
+    }
+    const centerGoal = baseCenter.clone().lerp(targetCenter, ft);
+    shellsGroup.position.lerp(centerGoal, 1 - Math.pow(0.001, dt)); // 指数平滑
+    const colorGoal = shellColorDefault.clone().lerp(targetColor, ft);
+    if (shellMatOuter && shellMatOuter.uniforms) {
+      if (shellMatOuter.uniforms.uColor) shellMatOuter.uniforms.uColor.value.copy(colorGoal);
+      if (shellMatOuter.uniforms.uTime)  shellMatOuter.uniforms.uTime.value = t;
+    }
+    if (shellMatInner && shellMatInner.uniforms) {
+      if (shellMatInner.uniforms.uColor) shellMatInner.uniforms.uColor.value.copy(colorGoal);
+      if (shellMatInner.uniforms.uTime)  shellMatInner.uniforms.uTime.value = t;
+    }
+    // 整体缩放随聚焦过渡：聚焦时整个子树都在里面，球壳可以更小（更贴合子树视觉）
+    const sc = 1 - 0.17 * ft; // 1.0 → 0.83
+    shellsGroup.scale.setScalar(sc);
+  }
+
+  // ===== 聚焦视角：只在聚焦过渡动画中 (focusDir !== 0) 平滑调整相机与 target，稳态完全交给 OrbitControls 避免双向拉扯抽搐 =====
+  if (controls && camera && focusDir !== 0) {
+    // 原状：相机 z=15, 看向 (0, 0.1, 0)
+    // 聚焦：相机 z=10.8, 看向聚焦目标中心（一般 0,0,0）
+    let baseTX = 0, baseTY = 0.1, baseTZ = 0;
+    let baseZ = 15;
+    let tx = baseTX, ty = baseTY, tz = baseTZ;
+    if (focused && ft > 1e-6) {
+      const tgt = focusTargets && focusTargets.get(focused.raw.id);
+      if (tgt) { tx = tgt.x; ty = tgt.y - 0.35; tz = tgt.z; }
+      baseZ = 10.8;
+    }
+    const lerp = 1 - Math.pow(0.0015, dt);
+    controls.target.x += (tx - controls.target.x) * lerp;
+    controls.target.y += (ty - controls.target.y) * lerp;
+    controls.target.z += (tz - controls.target.z) * lerp;
+    camera.position.z += (baseZ - camera.position.z) * lerp;
+  }
+
+  // ===== 自转控制：用户偏好 AND （无悬停 AND 无聚焦中心点击时不强制停）=====
+  // 注意：hovered 时 onPointerMove 会把 autoRotate=false，离开后恢复 userAutoRotate
+  if (worldGroup) {
+    if (autoRotate) worldGroup.rotation.y += dt * 0.12;
+    worldGroup.position.y = Math.sin(t*0.5) * 0.15;
+    worldGroup.rotation.x = Math.sin(t*0.25) * 0.05;
+  }
+
+  // ===== 节点位置 / 透明度 =====
+  for (let i = 0; i < nodeMeshes.length; i++) {
+    const m = nodeMeshes[i];
+    const id = m.raw.id;
+    const ph = m.floatPhase;
+
+    // ---- 基础位置（原状：basePos + 呼吸浮动）----
+    const pulse = Math.sin(t*1.4+ph) * 0.055;
+    const n = m.basePos.clone().normalize();
+    const floatPos = new THREE.Vector3(
+      m.basePos.x + n.x*pulse + Math.sin(t*0.8+ph*1.3)*0.04,
+      m.basePos.y + n.y*pulse + Math.cos(t*0.9+ph*0.7)*0.04,
+      m.basePos.z + n.z*pulse + Math.sin(t*0.7+ph*1.1)*0.04
+    );
+
+    // ---- 起始 / 终止 位置（支持 A→B 平滑切换）----
+    let startPos = floatPos;
+    if (focusSnapshot && focusSnapshot.has(id)) {
+      // 快照起点：进入过渡前记录的节点真实 pos
+      startPos = focusSnapshot.get(id).clone();
+      // 加一点微小浮动，避免大节点"冻结"感
+      startPos.x += Math.sin(t*0.8+ph*1.3)*0.015;
+      startPos.y += Math.cos(t*0.9+ph*0.7)*0.015;
+      startPos.z += Math.sin(t*0.7+ph*1.1)*0.015;
+    }
+    let endPos = floatPos; // 默认终点：原状浮动
+    if (focused && focusTargets) {
+      const target = focusTargets.get(id);
+      if (target) {
+        // 相关节点：目标 + 微呼吸
+        const localPulse = new THREE.Vector3(
+          Math.sin(t*1.2+ph)*0.04,
+          Math.cos(t*1.4+ph*0.9)*0.04,
+          Math.sin(t*1.1+ph*0.7)*0.04
+        );
+        endPos = target.clone().add(localPulse);
+      } else {
+        // 无关节点：保持原状浮动
+        endPos = floatPos;
+      }
+    }
+    // 插值：startPos → endPos
+    let finalPos;
+    if ((focused || focusSnapshot) && (ft > 1e-6 || ft < 1 - 1e-6)) {
+      finalPos = startPos.clone().lerp(endPos, ft);
+    } else {
+      finalPos = endPos.clone();
+    }
+    m.pos.copy(finalPos);
+
+    // ---- 透明度 / 缩放 ----
+    let opacityGoal = 1;
+    let scaleBoost = 1;
+    if (ft > 1e-6) {
+      const isRelated = focusRelatedSet && focusRelatedSet.has(id);
+      if (isRelated) {
+        opacityGoal = 1;
+        if (focused && focused.raw.id === id) scaleBoost = 1.25 + 0.1 * Math.sin(t*2); // 中心点放大脉动
+      } else {
+        opacityGoal = 0.06; // 无关节点大幅淡化
+        scaleBoost = 0.7;
+      }
+    }
+    // hover 优先级最高：覆盖聚焦淡化
+    if (hovered === m) {
+      opacityGoal = 1;
+      scaleBoost = Math.max(scaleBoost, 1.45);
+    }
+    const bs = m.baseScale * scaleBoost;
+    m.ball.scale.set(bs, bs, 1);
+    m.ball.material.opacity = opacityGoal;
+    if (m.label) m.label.material.opacity = Math.max(
+      (ft > 1e-6 && focusRelatedSet && !focusRelatedSet.has(id)) ? 0.05 : opacityGoal,
+      hovered === m ? 1 : 0
+    );
+    if (m.linkIcon) m.linkIcon.material.opacity = Math.max(0.2, opacityGoal);
+
+    // 非悬停时周期性呼吸缩放
+    if (hovered !== m && (!focused || focused !== m)) {
+      if (i % 3 !== 1) continue;
+      const br = 1 + Math.sin(t*2.2+ph)*0.06;
+      m.ball.scale.setScalar(bs * br);
+    }
+  }
+
+  // ===== 连线：每帧同步端点位置（节点在聚焦移动/呼吸时，线也要跟着走）=====
+  if (linkLinesNormal && linkLinesNormal.geometry && linkInfo.length) {
+    const nAttr = linkLinesNormal.geometry.attributes.position;
+    const nArr = nAttr.array;
+    const hAttr = linkLinesHL ? linkLinesHL.geometry.attributes.position : null;
+    const hArr = hAttr ? hAttr.array : null;
+    for (let i = 0; i < linkInfo.length; i++) {
+      const li = linkInfo[i];
+      const sm = li.sMesh, tm = li.tMesh;
+      if (!sm || !tm) continue;
+      const bi = i * 6;
+      // 普通连线：始终跟随节点当前位置
+      nArr[bi+0] = sm.pos.x; nArr[bi+1] = sm.pos.y; nArr[bi+2] = sm.pos.z;
+      nArr[bi+3] = tm.pos.x; nArr[bi+4] = tm.pos.y; nArr[bi+5] = tm.pos.z;
+      // 高亮连线：悬停父子 OR 聚焦 related 两端，否则置零
+      let hl = false;
+      if (hovered) {
+        if (sm === hovered || tm === hovered) hl = true;
+      } else if (focused && ft > 1e-6 && focusRelatedSet) {
+        if (focusRelatedSet.has(li.sId) && focusRelatedSet.has(li.tId)) hl = true;
+      }
+      if (hArr) {
+        if (hl) {
+          hArr[bi+0] = sm.pos.x; hArr[bi+1] = sm.pos.y; hArr[bi+2] = sm.pos.z;
+          hArr[bi+3] = tm.pos.x; hArr[bi+4] = tm.pos.y; hArr[bi+5] = tm.pos.z;
+        } else {
+          hArr[bi+0] = 0; hArr[bi+1] = 0; hArr[bi+2] = 0;
+          hArr[bi+3] = 0; hArr[bi+4] = 0; hArr[bi+5] = 0;
+        }
+      }
+    }
+    nAttr.needsUpdate = true;
+    if (hAttr) hAttr.needsUpdate = true;
+  }
+  // 连线透明度
+  if (linkMatNormal) {
+    if (ft > 1e-6 && focusRelatedSet) {
+      linkMatNormal.opacity = 0.08; // 无关整体淡
+    } else {
+      linkMatNormal.opacity = hovered ? 0.1 : 0.55;
+    }
+  }
+  if (linkMatHL) {
+    linkMatHL.opacity = (hovered || (focused && ft > 0.4)) ? 0.95 : 0;
+  }
+
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+
+function onResize() {
+  if (!renderer || !camera) return;
+  const { W, H } = getCanvasSize();
+  if (W <= 0 || H <= 0) return;
+  camera.aspect = W / H;
+  camera.updateProjectionMatrix();
+  renderer.setSize(W, H, false);
+}
+
+/* ============ 编辑面板函数（全局作用域，DOM ready 后绑定） ============ */
+let toastTimer;
+function showToast(msg, isError) {
+  const t = document.getElementById('toast'); if (!t) return;
+  t.textContent = msg;
+  t.classList.toggle('error', !!isError);
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function togglePanel() {
+  const p = document.getElementById('editPanel');
+  if (!p) return;
+  p.classList.toggle('open');
+  // 面板切换可能导致父容器高度/宽度变化，多次触发确保稳定
+  [100, 260, 450].forEach(ms => setTimeout(onResize, ms));
+}
+function toggleRotation() {
+  autoRotate = !autoRotate;
+  userAutoRotate = autoRotate; // 用户手动操作 = 用户偏好更新
+  showToast(autoRotate ? '已开启自转' : '已暂停自转');
+}
+function escapeAttr(s){return String(s||'').replace(/"/g,'&quot;');}
+function renderTreeTable() {
+  const STYLE_OPTIONS = [
+    {v:'normal', t:'普通球'},
+    {v:'example',t:'示例(虚线圈)'},
+    {v:'ref-box',t:'引用框(方块)'}
+  ];
+  const tbody = document.getElementById('treeTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  g_nodes.forEach((n, i) => {
+    if (typeof n.crossLinks === 'undefined') n.crossLinks = '';
+    if (typeof n.extraParents === 'undefined') n.extraParents = '';
+    const levelTag = `<span class="level-tag level-${Math.min(n.level,4)}">L${n.level}</span>`;
+    const styleOpts = STYLE_OPTIONS.map(s =>
+      `<option value="${s.v}" ${n.style===s.v?'selected':''}>${s.t}</option>`
+    ).join('');
+    const iu = Math.max(0, n.level-1);
+    const indentHtml = iu > 0
+      ? `<span class="indent-bar">${Array(iu).fill('<span class="indent-unit"></span>').join('')}</span>` : '';
+    const sc = n.color || '#34d399';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="col-level" style="text-align:center;">
+        ${levelTag}<br>
+        <input type="number" min="0" max="5" value="${n.level}" data-idx="${i}" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td>${indentHtml}<input type="text" value="${escapeAttr(n.text)}"  data-idx="${i}" data-key="text"></td>
+      <td><input type="url"  value="${escapeAttr(n.link)}"  data-idx="${i}" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="${escapeAttr(n.parentId)}" data-idx="${i}" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="${i}" data-key="side">
+          <option value="L" ${n.side==='L'?'selected':''}>L 左</option>
+          <option value="R" ${n.side==='R'?'selected':''}>R 右</option>
+          <option value=""  ${n.side===''?'selected':''}>-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="${i}" data-key="style">${styleOpts}</select></td>
+      <td><input type="text" value="${escapeAttr(n.crossLinks||'')}" data-idx="${i}" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="${escapeAttr(n.extraParents||'')}" data-idx="${i}" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="${sc}" data-idx="${i}" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="${i}">复</button>
+        <button class="btn btn-red btn-xs"    data-act="del" data-idx="${i}">删</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+
+  // 事件委托（change / 点击）
+  tbody.querySelectorAll('input,select').forEach(el => {
+    el.addEventListener('change', () => {
+      const idx = +el.dataset.idx;
+      const key = el.dataset.key;
+      let v = el.value;
+      if (el.dataset.type === 'num') v = +v;
+      g_nodes[idx][key] = v;
+      rebuildScene();
+    });
+  });
+  tbody.querySelectorAll('button[data-act]').forEach(b => {
+    b.addEventListener('click', () => {
+      const idx = +b.dataset.idx;
+      const act = b.dataset.act;
+      if (act === 'dup') duplicateNode(idx);
+      if (act === 'del') deleteNode(idx);
+    });
+  });
+}
+function updateNode(i,k,v){ g_nodes[i][k]=v; rebuildScene(); }
+function addNode() {
+  const id = 'n_' + Date.now().toString(36) + Math.floor(Math.random()*1000).toString(36);
+  g_nodes.push({id, text:'新节点', link:'', level:3, parentId:'root', side:'R', style:'normal', color:'#34d399', crossLinks:'', extraParents:''});
+  renderTreeTable(); rebuildScene(); showToast('已添加节点');
+}
+function duplicateNode(idx){
+  const src = g_nodes[idx];
+  const id = src.id + '_copy_' + Math.floor(Math.random()*10000);
+  g_nodes.splice(idx+1, 0, { ...JSON.parse(JSON.stringify(src)), id, text: src.text+' (副本)' });
+  renderTreeTable(); rebuildScene(); showToast('已复制节点');
+}
+function deleteNode(idx){
+  const t = g_nodes[idx];
+  const ch = g_nodes.filter(n => n.parentId === t.id);
+  if (ch.length) {
+    if (!confirm(`节点 "${t.text}" 有 ${ch.length} 个子节点，一并删除？`)) return;
+    const del = new Set([t.id]);
+    let c = true;
+    while (c) {
+      c = false;
+      g_nodes.forEach(n => { if (!del.has(n.id) && del.has(n.parentId)) { del.add(n.id); c = true; } });
+    }
+    g_nodes = g_nodes.filter(n => !del.has(n.id));
+  } else {
+    if (!confirm(`删除节点 "${t.text}"？`)) return;
+    g_nodes.splice(idx,1);
+  }
+  renderTreeTable(); rebuildScene(); showToast('已删除');
+}
+function exportJSON() {
+  const data = {
+    pageTitle: document.getElementById('pageTitle').innerText,
+    pageSubtitle: document.getElementById('pageSubtitle').innerText,
+    nodes: g_nodes
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'qianli_sop_planet_config.json';
+  a.click();
+  showToast('已导出配置 JSON');
+}
+function importJSON(ev) {
+  const f = ev.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      if (!d.nodes || !Array.isArray(d.nodes)) throw new Error('JSON 缺少 nodes 数组');
+      if (d.pageTitle) document.getElementById('pageTitle').innerText = d.pageTitle;
+      if (d.pageSubtitle) document.getElementById('pageSubtitle').innerText = d.pageSubtitle;
+      g_nodes = d.nodes;
+      g_nodes.forEach(n => {
+        if (typeof n.crossLinks === 'undefined') n.crossLinks = '';
+        if (typeof n.extraParents === 'undefined') n.extraParents = '';
+      });
+      renderTreeTable(); rebuildScene(); showToast('导入成功');
+    } catch(err) { showToast('导入失败：'+err.message, true); }
+  };
+  r.readAsText(f);
+  ev.target.value = '';
+}
+function resetData() {
+  if (!confirm('确认重置为默认数据？')) return;
+  g_nodes = JSON.parse(JSON.stringify(DEFAULT_NODES));
+  g_nodes.forEach(n => {
+    if (typeof n.crossLinks === 'undefined') n.crossLinks = '';
+    if (typeof n.extraParents === 'undefined') n.extraParents = '';
+  });
+  document.getElementById('pageTitle').innerText = '千里基本工作 SOP';
+  document.getElementById('pageSubtitle').innerText = '曼波大模型Made by：张郭浩';
+  renderTreeTable(); rebuildScene(); showToast('已重置');
+}
+
+/* ============ DOM ready：绑定所有按钮 + 启动 Three ============ */
+function bootUI() {
+  // 面板展开
+  var header = document.getElementById('editPanelHeader');
+  var panel  = document.getElementById('editPanel');
+  if (header && panel) {
+    header.addEventListener('click', togglePanel);
+    // 默认展开编辑面板
+    panel.classList.add('open');
+  }
+
+  // 工具栏按钮（元素存在才绑定，避免 DOM 不完整时报错）
+  var btn;
+  btn = document.getElementById('btnRebuild');     btn && btn.addEventListener('click', function(){ rebuildScene(); showToast('星球已重建'); });
+  btn = document.getElementById('btnExport');      btn && btn.addEventListener('click', exportJSON);
+  btn = document.getElementById('btnImportTrig');  btn && btn.addEventListener('click', function(){ var f=document.getElementById('importFile'); f && f.click(); });
+  btn = document.getElementById('importFile');     btn && btn.addEventListener('change', importJSON);
+  btn = document.getElementById('btnRotate');      btn && btn.addEventListener('click', toggleRotation);
+  btn = document.getElementById('btnReset');       btn && btn.addEventListener('click', resetData);
+  btn = document.getElementById('btnAddNode');     btn && btn.addEventListener('click', addNode);
+
+  // 表格（不依赖 Three）
+  renderTreeTable();
+}
+
+function bootThree() {
+  waitForThree(function() {
+    try {
+      initThree();
+      rebuildScene();
+      animate();
+    } catch (e) {
+      var tip = document.getElementById('loadingTip');
+      if (tip) {
+        tip.innerHTML = '❌ 初始化 3D 失败：'+(e && e.message ? e.message : e)+'<br>请按 F12 查看详细错误。';
+        tip.style.color = '#fca5a5'; tip.style.borderColor = 'rgba(248,113,113,0.4)';
+      }
+      console.error('[bootThree] init error:', e);
+    }
+  });
+}
+
+// DOM ready 后先启动 UI，Three 部分等脚本加载
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function(){ bootUI(); bootThree(); });
+} else {
+  bootUI(); bootThree();
+}
+
+// 如果 15 秒后加载提示仍在，给出诊断信息
+setTimeout(function(){
+  var tip = document.getElementById('loadingTip');
+  if (tip && tip.parentNode) {
+    var msg = [];
+    if (window.__threeError || typeof THREE === 'undefined')       msg.push('Three.js 核心未加载');
+    else if (!THREE.OrbitControls)                                msg.push('OrbitControls 未挂载');
+    if (msg.length) {
+      tip.innerHTML = '❌ '+msg.join('、')+'。<br>可能是网络限制无法访问 unpkg.com，请检查网络或刷新重试。';
+      tip.style.color = '#fca5a5'; tip.style.borderColor = 'rgba(248,113,113,0.4)';
+    }
+  }
+}, 15000);
+</script>
+</body>
+</html>
