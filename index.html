@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -381,10 +381,12 @@
 <div class="container">
 
   <div class="header">
-    <h1  id="pageTitle">千里基本工作 SOP</h1>
-    <p  id="pageSubtitle">曼波大模型Made by：张郭浩</p>
+    <h1 id="pageTitle">千里基本工作 SOP</h1>
+    <p id="pageSubtitle">曼波大模型Made by：张郭浩</p>
   </div>
-<!-- 3D 场景 -->
+
+  <!-- Edit panel stripped for public deploy -->
+  <!-- 3D scene -->
   <div class="scene-wrap">
     <div class="hud hud-tip">
       <h4>🖱 操作</h4>
@@ -2024,6 +2026,158 @@ function resetData() {
   renderTreeTable(); rebuildScene(); showToast('已重置');
 }
 
+/* ============ 一键保存 + 刷新（通过本地 PowerShell 助手写回磁盘） ============ */
+const HELPER_BASE = 'http://127.0.0.1:7788';
+let __helperOk = false;
+async function probeHelper(){
+  try {
+    const r = await fetch(HELPER_BASE + '/ping', { cache: 'no-store' });
+    __helperOk = (await r.text()).trim() === 'pong';
+  } catch { __helperOk = false; }
+  const badge = document.getElementById('helperStatus');
+  if (badge) {
+    if (__helperOk) {
+      badge.style.background = 'rgba(34,197,94,0.18)'; badge.style.color = '#4ade80'; badge.style.border = '1px solid rgba(74,222,128,0.35)';
+      badge.textContent = '🟢 本地助手已连接：保存直接写回磁盘';
+    } else {
+      badge.style.background = 'rgba(251,191,36,0.12)'; badge.style.color = '#fbbf24'; badge.style.border = '1px solid rgba(251,191,36,0.35)';
+      badge.textContent = '🟡 本地助手未启动：保存将下载最新 HTML（手动覆盖）';
+    }
+  }
+}
+
+// 把一个 JS 数组对象安全序列化为"可读的数组字面量"（用于替换 DEFAULT_NODES）
+function serializeNodesAsLiteral(nodes){
+  const lines = nodes.map((n,i) => {
+    const keysOrder = ['id','text','link','level','parentId','side','style','color','crossLinks','extraParents'];
+    const parts = [];
+    keysOrder.forEach(k => {
+      if (n[k] === undefined || n[k] === null || n[k] === '') {
+        if (k === 'crossLinks' || k === 'extraParents') parts.push(`${k}: ''`);
+        return;
+      }
+      let v = n[k];
+      if (typeof v === 'string') {
+        // 单引号字符串，转义 \ 和 '
+        v = v.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        parts.push(`${k}: '${v}'`);
+      } else {
+        parts.push(`${k}: ${v}`);
+      }
+    });
+    return '  { ' + parts.join(', ') + ' }' + (i < nodes.length-1 ? ',' : '');
+  });
+  return '[\n' + lines.join('\n') + '\n]';
+}
+
+// 从磁盘拿原始 HTML（通过 GET /current-html），把 DEFAULT_NODES 数组 + 主副标题替换成最新，返回新的 HTML 字符串
+async function buildNewSourceHtml(){
+  // 1. 尝试从本地助手拿"磁盘原始源码"，保证格式不变
+  let source = null;
+  try {
+    const r = await fetch(HELPER_BASE + '/current-html', { cache: 'no-store' });
+    if (r.ok) source = await r.text();
+  } catch {}
+
+  // 当前标题
+  const titleText = (document.getElementById('pageTitle') || {}).innerText || '千里基本工作 SOP';
+  const subtitleText = (document.getElementById('pageSubtitle') || {}).innerText || '';
+  const nodesLiteral = serializeNodesAsLiteral(g_nodes);
+
+  if (source) {
+    // 路径 A：用原始源码精确替换三段
+    // a. DEFAULT_NODES 数组
+    source = source.replace(/const DEFAULT_NODES\s*=\s*\[[\s\S]*?\n\];?/m, 'const DEFAULT_NODES = ' + nodesLiteral + ';');
+    // b. <h1 id="pageTitle"> ... </h1>（保留属性顺序差异）
+    source = source.replace(/<h1[^>]*\bid="pageTitle"[^>]*>[\s\S]*?<\/h1>/,
+      `<h1 id="pageTitle">${titleText.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</h1>`);
+    // c. <p id="pageSubtitle"> ... </p>
+    source = source.replace(/<p[^>]*\bid="pageSubtitle"[^>]*>[\s\S]*?<\/p>/,
+      `<p id="pageSubtitle">${subtitleText.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>`);
+    // d. resetData() 里的初始标题（保证点重置也能回到新标题）
+    source = source.replace(
+      /document\.getElementById\('pageTitle'\)\.innerText\s*=\s*'[^']*';/,
+      `document.getElementById('pageTitle').innerText = '${titleText.replace(/'/g, "\\'")}';`
+    );
+    source = source.replace(
+      /document\.getElementById\('pageSubtitle'\)\.innerText\s*=\s*'[^']*';/,
+      `document.getElementById('pageSubtitle').innerText = '${subtitleText.replace(/'/g, "\\'")}';`
+    );
+    return source;
+  }
+
+  // 2. 路径 B（兜底）：从当前 DOM 生成一份可独立运行的完整 HTML（没启动助手时用）
+  // 克隆整棵 DOM，去掉运行期残留（画布内容、toast show、loadingTip 隐藏）
+  const clone = document.documentElement.cloneNode(true);
+  const canvas = clone.querySelector('#threeCanvas'); if (canvas) { canvas.width = 800; canvas.height = 600; /* 不保留像素，不影响再次打开 */ }
+  const toast = clone.querySelector('#toast'); if (toast) toast.classList.remove('show');
+  const loadTip = clone.querySelector('#loadingTip'); if (loadTip) loadTip.style.display = 'none';
+  // 把标题内容同步到 clone
+  const h1 = clone.querySelector('#pageTitle'); if (h1) h1.textContent = titleText;
+  const sub = clone.querySelector('#pageSubtitle'); if (sub) sub.textContent = subtitleText;
+  // 在克隆体的脚本里注入新 DEFAULT_NODES：找到 <script> 里包含 'const DEFAULT_NODES' 的那段，替换
+  clone.querySelectorAll('script').forEach(sc => {
+    if (/const\s+DEFAULT_NODES\s*=/.test(sc.textContent || '')) {
+      sc.textContent = (sc.textContent || '').replace(
+        /const\s+DEFAULT_NODES\s*=\s*\[[\s\S]*?\n\];?/m,
+        'const DEFAULT_NODES = ' + nodesLiteral + ';'
+      );
+      // 同步 resetData 里的标题
+      sc.textContent = sc.textContent.replace(
+        /document\.getElementById\('pageTitle'\)\.innerText\s*=\s*'[^']*';/,
+        `document.getElementById('pageTitle').innerText = '${titleText.replace(/'/g, "\\'")}';`
+      );
+      sc.textContent = sc.textContent.replace(
+        /document\.getElementById\('pageSubtitle'\)\.innerText\s*=\s*'[^']*';/,
+        `document.getElementById('pageSubtitle').innerText = '${subtitleText.replace(/'/g, "\\'")}';`
+      );
+    }
+  });
+  return '<!DOCTYPE html>\n' + clone.outerHTML;
+}
+
+async function saveAndRefresh(){
+  // 先同步一次表格里还没触发 change 事件的 input（input 还在 focus 时用户可能直接点保存）
+  document.querySelectorAll('#treeTableBody input, #treeTableBody select').forEach(el => {
+    try {
+      const idx = +el.dataset.idx;
+      const key = el.dataset.key;
+      if (isNaN(idx) || !key) return;
+      let v = el.value;
+      if (el.dataset.type === 'num') v = +v;
+      g_nodes[idx][key] = v;
+    } catch {}
+  });
+  rebuildScene();
+
+  try {
+    const html = await buildNewSourceHtml();
+    if (__helperOk) {
+      // 走本地助手：直接写回磁盘，然后 reload
+      const r = await fetch(HELPER_BASE + '/write-html', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        body: html
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + (await r.text()));
+      showToast('💾 已保存到磁盘，页面即将刷新…');
+      setTimeout(() => location.reload(), 350);
+    } else {
+      // 兜底：浏览器下载文件，用户手动覆盖 qianli_sop_planet.html
+      const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'qianli_sop_planet.html';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      showToast('⬇ 已生成最新 HTML，请把下载文件覆盖到本目录的 qianli_sop_planet.html，再刷新页面');
+    }
+  } catch (e) {
+    console.error(e);
+    showToast('保存失败：' + (e && e.message ? e.message : e), true);
+  }
+}
+
 /* ============ DOM ready：绑定所有按钮 + 启动 Three ============ */
 function bootUI() {
   // 面板展开
@@ -2032,11 +2186,12 @@ function bootUI() {
   if (header && panel) {
     header.addEventListener('click', togglePanel);
     // 默认展开编辑面板
-    // (部署版已移除编辑面板)
+    panel.classList.add('open');
   }
 
   // 工具栏按钮（元素存在才绑定，避免 DOM 不完整时报错）
   var btn;
+  btn = document.getElementById('btnSaveReload');  btn && btn.addEventListener('click', saveAndRefresh);
   btn = document.getElementById('btnRebuild');     btn && btn.addEventListener('click', function(){ rebuildScene(); showToast('星球已重建'); });
   btn = document.getElementById('btnExport');      btn && btn.addEventListener('click', exportJSON);
   btn = document.getElementById('btnImportTrig');  btn && btn.addEventListener('click', function(){ var f=document.getElementById('importFile'); f && f.click(); });
@@ -2044,6 +2199,10 @@ function bootUI() {
   btn = document.getElementById('btnRotate');      btn && btn.addEventListener('click', toggleRotation);
   btn = document.getElementById('btnReset');       btn && btn.addEventListener('click', resetData);
   btn = document.getElementById('btnAddNode');     btn && btn.addEventListener('click', addNode);
+
+  // 周期性检测本地开发助手连接状态（badge 实时更新）
+  probeHelper();
+  setInterval(probeHelper, 4000);
 
   // 表格（不依赖 Three）
   renderTreeTable();
