@@ -1,4 +1,4 @@
-################################################
+﻿################################################
 # SOP Planet 一键部署脚本（本站点仓库内运行）
 #
 # 目录约定（所有文件跟本脚本同目录 = site-sop-planet/）：
@@ -13,7 +13,7 @@
 #   index.html              从 qianli_sop_planet.html 复制并「剥离编辑面板 + 锁定标题只读」
 #
 # 远程仓库：https://github.com/NepheLoudy/qianli-sop
-# Pages 地址：https://NepheLoudy.github.io/qianli-sop/
+# Pages 地址（自定义域）：https://sop.cquqianli.cn/
 #
 # 用法：
 #   1) 直接改本目录下的 qianli_sop_planet.html（编辑面板照用，节点/链接随便改）
@@ -96,7 +96,8 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host ""
 Write-Host "==> 同步完成！GitHub Actions 约 30-90 秒后刷新：" -ForegroundColor Green
-Write-Host "    SOP 行星:    https://NepheLoudy.github.io/qianli-sop/           (index.html)" -ForegroundColor Green
+Write-Host "    SOP 行星:    https://sop.cquqianli.cn/           (index.html)" -ForegroundColor Green
 foreach ($p in $inRepo) {
-    Write-Host "    $($p.PadRight(22))  https://NepheLoudy.github.io/qianli-sop/$p" -ForegroundColor Green
+    Write-Host "    $($p.PadRight(22))  https://sop.cquqianli.cn/$p" -ForegroundColor Green
 }
+
