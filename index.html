@@ -830,6 +830,38 @@ function clearObjects() {
   focusSnapshot = null;
 }
 
+// ===== 斥力松弛：把距离小于"个人空间之和"的节点对沿连线推开 =====
+// 个人空间：跨链接/额外父节点更大（延续"跨联系节点斥力稍大"的设计）
+function nodeSpaceOf(raw){
+  if (!raw) return 0.6;
+  if ((raw.crossLinks && raw.crossLinks.trim()) || (raw.extraParents && raw.extraParents.trim())) return 0.95;
+  return 0.6;
+}
+function relaxOverlaps(map, iterations, fixedIds, spaceMap){
+  const ids = [];
+  map.forEach((v, k) => ids.push(k));
+  const fixed = fixedIds || new Set();
+  const sp = id => (spaceMap && spaceMap[id]) || 0.6;
+  for (let it = 0; it < (iterations || 5); it++) {
+    for (let a = 0; a < ids.length; a++) {
+      for (let b = a + 1; b < ids.length; b++) {
+        const ia = ids[a], ib = ids[b];
+        const pa = map.get(ia), pb = map.get(ib);
+        if (!pa || !pb) continue;
+        const minD = sp(ia) + sp(ib);
+        const d = pa.distanceTo(pb);
+        if (d >= minD || d < 1e-4) continue;
+        const dir = pb.clone().sub(pa).normalize();
+        const push = (minD - d) / 2 + 0.02;
+        const fa = fixed.has(ia), fb = fixed.has(ib);
+        if (!fa && !fb) { pa.addScaledVector(dir, -push); pb.addScaledVector(dir, push); }
+        else if (fa && !fb) pb.addScaledVector(dir, push * 2);
+        else if (!fa && fb) pa.addScaledVector(dir, -push * 2);
+      }
+    }
+  }
+}
+
 function rebuildScene() {
   if (!worldGroup) return; // 尚未初始化
   clearObjects();
@@ -907,6 +939,15 @@ function rebuildScene() {
       });
     });
   });
+
+  // ===== 斥力松弛：不同分支过近的节点互相推开（root 固定），消解树枝重叠 =====
+  (function(){
+    const m = new Map();
+    for (const id in positions) m.set(id, positions[id]);
+    const space = {};
+    for (const id in positions) space[id] = nodeSpaceOf(byId[id]);
+    relaxOverlaps(m, 6, new Set(['root']), space);
+  })();
 
   document.getElementById('hudStats').innerHTML =
     `🌐 <b>${valid.length}</b> 节点 · 🔗 <b>${valid.filter(x=>x.link&&x.link.trim()&&x.style!=='person').length}</b> 可跳转 · 👤 <b>${valid.filter(x=>x.style==='person').length}</b> 负责人 · ➖ <b>${valid.filter(x=>x.parentId).length}</b> 连线`;
@@ -1651,6 +1692,13 @@ function calcFocusTargets(centerMesh){
     const pts = fiboSpherePoints(others.length, R_OUT);
     others.sort().forEach((id, i) => { targets.set(id, pts[i]); });
   }
+
+  // ===== 斥力松弛：聚焦布局同样消解重叠；跨链接节点个人空间更大（延续基础态效果）=====
+  (function(){
+    const space = {};
+    g_nodes.forEach(n => { space[n.id] = nodeSpaceOf(n); });
+    relaxOverlaps(targets, 6, new Set([cid]), space);
+  })();
 
   return targets;
 }
