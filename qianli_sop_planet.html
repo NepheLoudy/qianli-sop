@@ -778,44 +778,81 @@ function makeLabelTexture(text, color='#fff') {
   const tex = new THREE.CanvasTexture(cv);
   return { tex, w: cv.width, h: cv.height };
 }
-// 负责人公示面板：常驻渲染在节点右下角（场景对象，跟随缩放/旋转）
+// 负责人公示看板：人形图标 + 节点标题 + 公示文本 一体化大看板（跟随缩放/旋转）
 function makePersonInfoSprite(n){
+  const title = String((n && n.text) || '负责人公示');
   const raw = String((n && n.link) || '').trim();
   const empty = !raw;
   const text = empty ? '（暂无公示）' : raw;
   const cv = document.createElement('canvas');
-  cv.width = 560;
+  cv.width = 760;
   const ctx = cv.getContext('2d');
-  const fontSize = 26, lineH = 34, padX = 22, padY = 16, maxW = cv.width - padX * 2;
+  const padX = 28, padY = 22, headH = 96;
+  const fontSize = 30, lineH = 42, maxW = cv.width - padX * 2;
   ctx.font = (empty ? 'italic ' : '') + fontSize + 'px "Microsoft YaHei","PingFang SC",sans-serif';
-  // 折行
+  // 文本折行（最多 10 行）
   const lines = [];
   let cur = '';
   for (const ch of text) {
-    if (ctx.measureText(cur + ch).width > maxW) { if (!cur) { cur = ch; } lines.push(cur); cur = cur === ch ? '' : ch; if (lines.length >= 8) break; }
+    if (ctx.measureText(cur + ch).width > maxW) { if (!cur) { cur = ch; } lines.push(cur); cur = cur === ch ? '' : ch; if (lines.length >= 10) break; }
     else cur += ch;
   }
-  if (cur && lines.length < 8) lines.push(cur);
-  if (lines.length >= 8 && (text.length > lines.join('').length)) lines[7] = lines[7].slice(0, -1) + '…';
-  cv.height = Math.ceil(lines.length * lineH + padY * 2);
-  ctx.font = (empty ? 'italic ' : '') + fontSize + 'px "Microsoft YaHei","PingFang SC",sans-serif';
-  // 圆角底
-  const r = 14;
+  if (cur && lines.length < 10) lines.push(cur);
+  if (lines.length >= 10 && (text.length > lines.join('').length)) lines[9] = lines[9].slice(0, -1) + '…';
+  cv.height = Math.ceil(headH + lines.length * lineH + padY * 2);
+  // 看板底
+  const r = 20;
   ctx.beginPath();
   ctx.moveTo(r, 0); ctx.arcTo(cv.width, 0, cv.width, cv.height, r); ctx.arcTo(cv.width, cv.height, 0, cv.height, r);
   ctx.arcTo(0, cv.height, 0, 0, r); ctx.arcTo(0, 0, cv.width, 0, r); ctx.closePath();
-  ctx.fillStyle = 'rgba(9,15,32,0.88)'; ctx.fill();
-  ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(122,162,255,0.55)'; ctx.stroke();
+  ctx.fillStyle = 'rgba(9,15,32,0.92)'; ctx.fill();
+  ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(122,162,255,0.6)'; ctx.stroke();
+  // 头部：人形图标（囊括进看板） + 标题
+  const icx = padX + 32, icy = padY + headH / 2;
+  const iconColor = (n && n.color) ? n.color : '#34d399';
+  const ig = ctx.createLinearGradient(icx, icy - 32, icx, icy + 32);
+  ig.addColorStop(0, lighten(iconColor, 40)); ig.addColorStop(1, iconColor);
+  ctx.fillStyle = ig; ctx.strokeStyle = darken(iconColor, 35); ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(icx, icy - 8, 15, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.arc(icx, icy + 26, 25, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.font = 'bold 34px "Microsoft YaHei","PingFang SC",sans-serif';
   ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
-  ctx.fillStyle = empty ? '#8ea0c0' : '#dbe7ff';
-  lines.forEach((ln, i) => ctx.fillText(ln, padX, padY + lineH * i + lineH / 2));
+  ctx.fillStyle = '#a7c4ff';
+  let showTitle = title;
+  while (ctx.measureText(showTitle + '…').width > cv.width - (icx + 52) - padX && showTitle.length > 1) showTitle = showTitle.slice(0, -1);
+  if (showTitle !== title) showTitle += '…';
+  ctx.fillText(showTitle, icx + 52, icy);
+  // 分隔线
+  const lineY = padY + headH;
+  ctx.strokeStyle = 'rgba(122,162,255,0.35)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(padX, lineY); ctx.lineTo(cv.width - padX, lineY); ctx.stroke();
+  // 公示文本
+  ctx.font = (empty ? 'italic ' : '') + fontSize + 'px "Microsoft YaHei","PingFang SC",sans-serif';
+  ctx.fillStyle = empty ? '#8ea0c0' : '#e6edff';
+  lines.forEach((ln, i) => ctx.fillText(ln, padX, lineY + lineH * i + lineH / 2 + 8));
   const tex = new THREE.CanvasTexture(cv);
   const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false });
   const sp = new THREE.Sprite(mat);
-  const H = Math.min(1.5, Math.max(0.24, 0.13 * lines.length + 0.08));
-  sp.scale.set(H * (cv.width / cv.height), H, 1);
+  const W = 3.0; // 世界宽
+  sp.scale.set(W, W * cv.height / cv.width, 1);
   sp.renderOrder = 3;
   return sp;
+}
+// 小人形标注纹理：给"拥有负责人子节点"的节点图标右下角复制标注用
+function makePersonBadgeTexture(color){
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = 128;
+  const ctx = cv.getContext('2d');
+  const cx = 64, cy = 64;
+  const sh = ctx.createRadialGradient(cx, cy, 0, cx, cy, 64);
+  sh.addColorStop(0, hexToRgba(color, 0.55)); sh.addColorStop(1, hexToRgba(color, 0));
+  ctx.fillStyle = sh; ctx.fillRect(0, 0, 128, 128);
+  const g = ctx.createLinearGradient(cx, 10, cx, 118);
+  g.addColorStop(0, lighten(color, 40)); g.addColorStop(0.6, color); g.addColorStop(1, darken(color, 25));
+  ctx.fillStyle = g; ctx.strokeStyle = darken(color, 40); ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.arc(cx, 46, 20, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, 104, 33, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+  return { tex: new THREE.CanvasTexture(cv) };
 }
 function makeGlowMat(color, size=2, opacity=0.4) {
   const cv = document.createElement('canvas'); cv.width = cv.height = 256;
@@ -1389,13 +1426,24 @@ function rebuildScene() {
       linkIcon.position.y = sz.sprite*0.62 + lH*0.22;
     }
 
+    // 拥有负责人(person)子节点的节点：图标右下角复制小人形标注
+    let personBadge = null;
+    if (n.style !== 'person' && g_nodes.some(k => k.style === 'person' && (k.parentId === n.id || parseExtraParents(k).indexOf(n.id) >= 0))) {
+      const { tex: bt } = makePersonBadgeTexture(color);
+      personBadge = new THREE.Sprite(new THREE.SpriteMaterial({ map: bt, transparent: true, depthWrite: false, opacity: 0.95 }));
+      personBadge.renderOrder = 2;
+      const bs2 = sz.sprite;
+      personBadge.scale.set(bs2 * 0.52, bs2 * 0.52, 1);
+      personBadge.position.set(bs2 * 0.46, -bs2 * 0.46, 0);
+    }
+
     const g = new THREE.Group();
-    g.add(ball); g.add(label); if (linkIcon) g.add(linkIcon);
+    g.add(ball); g.add(label); if (linkIcon) g.add(linkIcon); if (personBadge) g.add(personBadge);
     g.position.copy(positions[n.id]);
     nodesGroup.add(g);
 
     nodeMeshes.push({
-      group: g, ball, label, linkIcon, raw: n,
+      group: g, ball, label, linkIcon, personBadge, raw: n,
       basePos: positions[n.id].clone(), pos: g.position,
       floatPhase: Math.random()*Math.PI*2, baseScale: sz.sprite,
       linkIdxPairs: []
@@ -2330,28 +2378,27 @@ function animate() {
     if (m.label) m.label.material.opacity = labelGoal;
     if (m.linkIcon) m.linkIcon.material.opacity = Math.max(m.lit === false ? 0.45 : 0.95, opacityGoal);
 
-    // 负责人节点：默认任何视角隐藏，聚焦其父节点时才显示；公示面板常驻右下角
+    // 负责人节点：球体本身不渲染也不拾取；聚焦其父节点时显示一体化公示看板（含人形图标）
     if (m.raw.style === 'person') {
+      m.__hidden = true;
+      m.ball.material.opacity = 0;
+      if (m.label) m.label.material.opacity = 0;
       const fp = focused && (focused.raw.id === m.raw.parentId || parseExtraParents(m.raw).indexOf(focused.raw.id) >= 0);
-      m.__hidden = !fp;
-      if (!fp) {
-        m.ball.material.opacity = 0;
-        if (m.label) m.label.material.opacity = 0;
-      }
       if (m.infoPanel) {
-        m.infoPanel.material.opacity = fp ? 0.92 : 0;
+        m.infoPanel.material.opacity = fp ? 0.95 : 0;
         if (fp) {
           scene.updateMatrixWorld();
           const wp = m.ball.getWorldPosition(new THREE.Vector3());
           const camRight = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0).normalize();
           const camUp = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1).normalize();
           const halfW = m.infoPanel.scale.x / 2, halfH = m.infoPanel.scale.y / 2;
-          const rad = m.baseScale * 0.5 + 0.1;
-          m.infoPanel.position.copy(wp).addScaledVector(camRight, rad + halfW).addScaledVector(camUp, -(rad + halfH));
+          const gap = m.baseScale * 0.2 + 0.1;
+          m.infoPanel.position.copy(wp).addScaledVector(camRight, gap + halfW).addScaledVector(camUp, -(gap + halfH));
         }
       }
     } else {
       m.__hidden = false;
+      if (m.personBadge) m.personBadge.material.opacity = Math.max(0.55, opacityGoal);
     }
 
     // 非悬停时周期性呼吸缩放
