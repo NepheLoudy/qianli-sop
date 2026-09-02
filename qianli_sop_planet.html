@@ -1032,10 +1032,10 @@ function rebuildScene() {
     let linkIcon = null;
     if (n.link && n.link.trim() && n.style !== 'person') {
       const { tex:it } = makeLabelTexture('🔗', '#fbbf24');
-      linkIcon = new THREE.Sprite(new THREE.SpriteMaterial({ map: it, transparent: true, depthWrite: false }));
-      const ia = 1;
-      linkIcon.scale.set(lH*0.55*ia, lH*0.55, 1);
-      linkIcon.position.y = sz.sprite*0.6 + lH*0.2;
+      linkIcon = new THREE.Sprite(new THREE.SpriteMaterial({ map: it, transparent: true, depthWrite: false, opacity: 1 }));
+      linkIcon.renderOrder = 2;
+      linkIcon.scale.set(lH*0.72, lH*0.72, 1);
+      linkIcon.position.y = sz.sprite*0.62 + lH*0.22;
     }
 
     const g = new THREE.Group();
@@ -1059,6 +1059,21 @@ function rebuildScene() {
     if (info.sMesh) info.sMesh.linkIdxPairs.push(i);
     if (info.tMesh) info.tMesh.linkIdxPairs.push(i);
   });
+
+  // ===== 科技树点亮：自身或任一后代（含额外父链反向）有链接 → 点亮；否则基础态暗淡 =====
+  (function computeLit(){
+    const byId = {};
+    g_nodes.forEach(n => { byId[n.id] = n; });
+    const lit = new Set();
+    function lightUp(n){
+      if (!n || lit.has(n.id)) return;
+      lit.add(n.id);
+      if (n.parentId && byId[n.parentId]) lightUp(byId[n.parentId]);
+      parseExtraParents(n).forEach(pid => { if (byId[pid]) lightUp(byId[pid]); });
+    }
+    g_nodes.forEach(n => { if (n.link && n.link.trim()) lightUp(n); });
+    nodeMeshes.forEach(m => { m.lit = lit.has(m.raw.id); });
+  })();
 
   // ============ 重新加同心球层：后半球壳 + 近端淡出 ============
   (function addShells(){
@@ -1289,6 +1304,7 @@ function onPointerUpEv(){
   // 拖动结束清空起点，下一帧 _dragMoved 仍保留到 click 事件检查完
   setTimeout(()=>{ _dragStart = null; }, 0);
 }
+let hoverRelatedSet = null; // 悬停节点的相关集合（父+子），动画循环按此做高亮/弱化
 function applyHover(nh) {
   // ===== 悬停停自转：只在"从无到有 / 从有到无"的状态边界切换一次 =====
   if (hovered === null && nh !== null) {
@@ -1303,15 +1319,15 @@ function applyHover(nh) {
   nodeMeshes.forEach(m => {
     const s = m.baseScale;
     m.ball.scale.set(s,s,1);
-    m.ball.material.opacity = 1;
-    if (m.label) m.label.material.opacity = 1;
+    m.ball.material.opacity = m.lit === false ? 0.35 : 1;
+    if (m.label) m.label.material.opacity = m.lit === false ? 0.42 : 1;
   });
   if (linkMatNormal) linkMatNormal.opacity = 0.55;
   if (linkMatHL) linkMatHL.opacity = 0;
 
   hovered = nh;
   const canvas = document.getElementById('threeCanvas');
-  if (!nh) { canvas.style.cursor = 'grab'; return; }
+  if (!nh) { hoverRelatedSet = null; canvas.style.cursor = 'grab'; return; }
 
   const s = nh.baseScale * 1.45;
   nh.ball.scale.set(s,s,1);
@@ -1319,6 +1335,7 @@ function applyHover(nh) {
   const rel = new Set([nh.raw.id]);
   if (nh.raw.parentId) rel.add(nh.raw.parentId);
   nodeMeshes.forEach(m => { if (m.raw.parentId === nh.raw.id) rel.add(m.raw.id); });
+  hoverRelatedSet = rel;
   nodeMeshes.forEach(m => {
     if (!rel.has(m.raw.id)) {
       m.ball.material.opacity = 0.22;
@@ -1865,31 +1882,43 @@ function animate() {
     m.pos.copy(finalPos);
 
     // ---- 透明度 / 缩放 ----
-    let opacityGoal = 1;
+    // 科技树点亮：自身或子树含链接 → 全亮；否则基础态暗淡（悬停/聚焦可临时恢复）
+    let opacityGoal = m.lit === false ? 0.35 : 1;
+    let labelGoal = m.lit === false ? 0.42 : 1;
     let scaleBoost = 1;
     if (ft > 1e-6) {
       const isRelated = focusRelatedSet && focusRelatedSet.has(id);
       if (isRelated) {
-        opacityGoal = 1;
+        opacityGoal = Math.max(opacityGoal, 0.9);
+        labelGoal = Math.max(labelGoal, 0.9);
         if (focused && focused.raw.id === id) scaleBoost = 1.25 + 0.1 * Math.sin(t*2); // 中心点放大脉动
       } else {
         opacityGoal = 0.06; // 无关节点大幅淡化
+        labelGoal = 0.05;
         scaleBoost = 0.7;
       }
     }
     // hover 优先级最高：覆盖聚焦淡化
     if (hovered === m) {
       opacityGoal = 1;
+      labelGoal = 1;
       scaleBoost = Math.max(scaleBoost, 1.45);
+    } else if (hovered) {
+      // 悬停高亮/弱化：悬停节点的父子清晰，无关节点弱化
+      const isHoverRel = hoverRelatedSet && hoverRelatedSet.has(id);
+      if (isHoverRel) {
+        opacityGoal = Math.max(opacityGoal, 0.85);
+        labelGoal = Math.max(labelGoal, 0.85);
+      } else {
+        opacityGoal = Math.min(opacityGoal, 0.18);
+        labelGoal = Math.min(labelGoal, 0.18);
+      }
     }
     const bs = m.baseScale * scaleBoost;
     m.ball.scale.set(bs, bs, 1);
     m.ball.material.opacity = opacityGoal;
-    if (m.label) m.label.material.opacity = Math.max(
-      (ft > 1e-6 && focusRelatedSet && !focusRelatedSet.has(id)) ? 0.05 : opacityGoal,
-      hovered === m ? 1 : 0
-    );
-    if (m.linkIcon) m.linkIcon.material.opacity = Math.max(0.2, opacityGoal);
+    if (m.label) m.label.material.opacity = labelGoal;
+    if (m.linkIcon) m.linkIcon.material.opacity = Math.max(m.lit === false ? 0.45 : 0.95, opacityGoal);
 
     // 非悬停时周期性呼吸缩放
     if (hovered !== m && (!focused || focused !== m)) {
