@@ -944,6 +944,66 @@ function relaxOverlaps(map, iterations, fixedIds, spaceMap, pairExtra){
   }
 }
 
+// ===== 线段保护：每条父子连线是一条"树枝通道"，外来节点靠太近就被垂直推出 =====
+// 斥力核心是线段本身（点到线段距离），而非节点对距离——沿轴向挪远也躲不掉。
+function guardSegments(map, byId, fixedIds, spaceMap, passes){
+  const ids = [];
+  map.forEach((v, k) => ids.push(k));
+  const fixed = fixedIds || new Set();
+  const sp = id => (spaceMap && spaceMap[id]) || 0.6;
+
+  // 结构边：原生父子 + 额外父（crossLinks 是虚关联，不算结构线）
+  const edges = [];
+  g_nodes.forEach(n => {
+    if (n.parentId && n.parentId !== n.id && map.has(n.parentId) && map.has(n.id)) edges.push([n.parentId, n.id]);
+    parseExtraParents(n).forEach(pid => {
+      if (pid !== n.id && map.has(pid) && map.has(n.id)) edges.push([pid, n.id]);
+    });
+  });
+
+  // 归属家族：边的父节点 + 其全部后代（家族成员豁免，可共享通道）
+  const kids = {};
+  g_nodes.forEach(n => { if (n.parentId) (kids[n.parentId] = kids[n.parentId] || []).push(n.id); });
+  const subtreeCache = {};
+  function subtreeOf(pid){
+    if (subtreeCache[pid]) return subtreeCache[pid];
+    const s = new Set([pid]); const st = [pid];
+    while (st.length) { const cur = st.pop(); (kids[cur] || []).forEach(k => { if (!s.has(k)) { s.add(k); st.push(k); } }); }
+    subtreeCache[pid] = s; return s;
+  }
+
+  for (let pass = 0; pass < (passes || 3); pass++) {
+    edges.forEach(function(pair){
+      const pid = pair[0], cid = pair[1];
+      const pp = map.get(pid), cp = map.get(cid);
+      if (!pp || !cp) return;
+      const fam = subtreeOf(pid);
+      const ab = cp.clone().sub(pp);
+      const abLen2 = Math.max(ab.lengthSq(), 1e-9);
+      ids.forEach(function(x){
+        if (x === pid || x === cid || fam.has(x) || fixed.has(x)) return;
+        const xp = map.get(x); if (!xp) return;
+        // 点到线段最近点
+        const t = Math.max(0, Math.min(1, xp.clone().sub(pp).dot(ab) / abLen2));
+        const q = pp.clone().addScaledVector(ab, t);
+        const guard = 0.75 + sp(x) * 0.4; // 跨链接节点保护半径更大
+        const dvec = xp.clone().sub(q);
+        const d = dvec.length();
+        if (d >= guard) return;
+        let dir;
+        if (d < 1e-4) {
+          // 恰好压在线上：取线段的任一正交方向
+          dir = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 0, 1), ab);
+          if (dir.lengthSq() < 1e-6) dir.set(1, 0, 0); else dir.normalize();
+        } else {
+          dir = dvec.normalize();
+        }
+        xp.copy(q).addScaledVector(dir, guard + 0.02);
+      });
+    });
+  }
+}
+
 function rebuildScene() {
   if (!worldGroup) return; // 尚未初始化
   clearObjects();
@@ -1032,9 +1092,13 @@ function rebuildScene() {
       branchOf[id] = branchIdOf(id, byId);
       clusterOf[id] = clusterIdOf(id, byId);
     }
-    relaxOverlaps(m, 10, new Set(['root']), space,
-      (a, b) => (branchOf[a] !== branchOf[b] ? 0.9
-               : (clusterOf[a] !== clusterOf[b] ? 0.55 : 0)));
+    const pairGap = (a, b) => (branchOf[a] !== branchOf[b] ? 0.9
+                               : (clusterOf[a] !== clusterOf[b] ? 0.55 : 0));
+    relaxOverlaps(m, 6, new Set(['root']), space, pairGap);
+    for (let g = 0; g < 3; g++) {
+      guardSegments(m, byId, new Set(['root']), space, 1);
+      relaxOverlaps(m, 2, new Set(['root']), space, pairGap);
+    }
   })();
 
   document.getElementById('hudStats').innerHTML =
@@ -1789,9 +1853,13 @@ function calcFocusTargets(centerMesh){
       branchOf[n.id] = branchIdOf(n.id, byId);
       clusterOf[n.id] = clusterIdOf(n.id, byId);
     });
-    relaxOverlaps(targets, 10, new Set([cid]), space,
-      (a, b) => (branchOf[a] !== branchOf[b] ? 0.9
-               : (clusterOf[a] !== clusterOf[b] ? 0.55 : 0)));
+    const pairGap = (a, b) => (branchOf[a] !== branchOf[b] ? 0.9
+                               : (clusterOf[a] !== clusterOf[b] ? 0.55 : 0));
+    relaxOverlaps(targets, 6, new Set([cid]), space, pairGap);
+    for (let g = 0; g < 3; g++) {
+      guardSegments(targets, byId, new Set([cid]), space, 1);
+      relaxOverlaps(targets, 2, new Set([cid]), space, pairGap);
+    }
   })();
 
   return targets;
