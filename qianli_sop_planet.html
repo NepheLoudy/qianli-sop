@@ -1004,6 +1004,69 @@ function guardSegments(map, byId, fixedIds, spaceMap, passes){
   }
 }
 
+// ===== 锥形保护：以父为顶点、子节点群为轮廓——外来节点方向落在子树锥内且径向距离相当 = 侵入 =====
+// 判定顺序：先角度偏移量（方向在锥内），再距离数值（与子节点环带相当），命中则保持径向距离旋出扇区
+function coneGuard(map, byId, fixedIds, passes){
+  const ids = [];
+  map.forEach((v, k) => ids.push(k));
+  const fixed = fixedIds || new Set();
+  const kidsInMap = {};   // 父 -> 在本布局内的直接子
+  g_nodes.forEach(n => {
+    if (n.parentId && n.parentId !== n.id && map.has(n.parentId) && map.has(n.id)) {
+      (kidsInMap[n.parentId] = kidsInMap[n.parentId] || []).push(n.id);
+    }
+  });
+  const kidsAll = {};
+  g_nodes.forEach(n => { if (n.parentId) (kidsAll[n.parentId] = kidsAll[n.parentId] || []).push(n.id); });
+  const subCache = {};
+  function subtreeOf(pid){
+    if (subCache[pid]) return subCache[pid];
+    const s = new Set([pid]); const st = [pid];
+    while (st.length) { const c = st.pop(); (kidsAll[c] || []).forEach(k => { if (!s.has(k)) { s.add(k); st.push(k); } }); }
+    subCache[pid] = s; return s;
+  }
+  const ANG = 30 * Math.PI / 180;   // 锥保护半角
+  const ROT = 33 * Math.PI / 180;   // 推出后的角度（含余量）
+  for (let pass = 0; pass < (passes || 2); pass++) {
+    Object.keys(kidsInMap).forEach(function(pid){
+      const pp = map.get(pid); if (!pp) return;
+      const fam = subtreeOf(pid);
+      const rays = [];
+      kidsInMap[pid].forEach(function(cid){
+        const cp = map.get(cid); if (!cp) return;
+        const dir = cp.clone().sub(pp);
+        rays.push({ dir: dir, d: dir.length() });
+      });
+      if (!rays.length) return;
+      ids.forEach(function(x){
+        if (x === pid || fam.has(x) || fixed.has(x)) return;
+        const xp = map.get(x); if (!xp) return;
+        const vx = xp.clone().sub(pp);
+        const dx = vx.length();
+        if (dx < 0.3) return;
+        rays.forEach(function(r){
+          // 距离数值判断：径向距离与该子环带相当才算侵入（太近由点对斥力管、太远不在子树范围）
+          if (dx < r.d * 0.55 || dx > r.d * 1.7) return;
+          // 角度偏移量判断：落在顶点->子 轮廓锥内
+          const cosT = vx.dot(r.dir) / (dx * r.d);
+          const theta = Math.acos(Math.max(-1, Math.min(1, cosT)));
+          if (theta >= ANG) return;
+          // 旋出：保持径向距离，方向推到锥外（沿 X 偏离射线的那一侧）
+          const rayDir = r.dir.clone().normalize();
+          let perp = vx.clone().sub(rayDir.clone().multiplyScalar(vx.dot(rayDir)));
+          if (perp.lengthSq() < 1e-6) {
+            perp = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 0, 1), rayDir);
+            if (perp.lengthSq() < 1e-6) perp.set(1, 0, 0);
+          }
+          perp.normalize();
+          const nd = rayDir.clone().multiplyScalar(Math.cos(ROT)).addScaledVector(perp, Math.sin(ROT)).normalize();
+          xp.copy(pp).addScaledVector(nd, dx);
+        });
+      });
+    });
+  }
+}
+
 function rebuildScene() {
   if (!worldGroup) return; // 尚未初始化
   clearObjects();
@@ -1098,6 +1161,7 @@ function rebuildScene() {
     for (let g = 0; g < 3; g++) {
       relaxOverlaps(m, 2, new Set(['root']), space, pairGap);
       guardSegments(m, byId, new Set(['root']), space, 1);
+      coneGuard(m, byId, new Set(['root']), 1);
     }
   })();
 
@@ -1859,6 +1923,7 @@ function calcFocusTargets(centerMesh){
     for (let g = 0; g < 3; g++) {
       relaxOverlaps(targets, 2, new Set([cid]), space, pairGap);
       guardSegments(targets, byId, new Set([cid]), space, 1);
+      coneGuard(targets, byId, new Set([cid]), 1);
     }
   })();
 
