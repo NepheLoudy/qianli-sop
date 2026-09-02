@@ -968,43 +968,70 @@ function coneGuard(map, byId, fixedIds, passes){
     while (st.length) { const c = st.pop(); (kidsAll[c] || []).forEach(k => { if (!s.has(k)) { s.add(k); st.push(k); } }); }
     subCache[pid] = s; return s;
   }
-  const ANG = 30 * Math.PI / 180;   // 锥保护半角
-  const ROT = 33 * Math.PI / 180;   // 推出后的角度（含余量）
+  // 用户模型 v2：以父为顶点，子方向平均为主轴，【最外侧子节点连线为母线】确定锥半角。
+  // 外来更深层级节点落在锥内且径向距离与子环带相当 = 侵入 → 保持径向距离旋出锥外。
+  const MARGIN = 8 * Math.PI / 180;    // 锥半角余量
+  const PUSH_EXTRA = 5 * Math.PI / 180; // 旋出后超出锥边的角度
+  const ancCache = {};
+  function ancestorsOf(id){
+    if (ancCache[id]) return ancCache[id];
+    const s = new Set(); let cur = byId[id];
+    const guard = new Set();
+    while (cur && cur.parentId && !guard.has(cur.id)) { guard.add(cur.id); s.add(cur.parentId); cur = byId[cur.parentId]; }
+    ancCache[id] = s; return s;
+  }
   for (let pass = 0; pass < (passes || 2); pass++) {
     Object.keys(kidsInMap).forEach(function(pid){
       const pp = map.get(pid); if (!pp) return;
+      const pRaw = byId[pid]; if (!pRaw) return;
       const fam = subtreeOf(pid);
-      const rays = [];
+      const anc = ancestorsOf(pid);
+      const axis = new THREE.Vector3();
+      let sumD = 0, cnt = 0;
+      const childDirs = [];
       kidsInMap[pid].forEach(function(cid){
         const cp = map.get(cid); if (!cp) return;
-        const dir = cp.clone().sub(pp);
-        rays.push({ dir: dir, d: dir.length() });
+        const dir = cp.clone().sub(pp); const d = dir.length();
+        if (d < 1e-4) return;
+        childDirs.push({ dir: dir.clone().normalize(), d: d });
+        axis.add(childDirs[childDirs.length-1].dir);
+        sumD += d; cnt++;
       });
-      if (!rays.length) return;
+      if (cnt < 1 || axis.lengthSq() < 1e-6) return;
+      axis.normalize();
+      // 最外侧母线 → 真实锥半角
+      let coneHalf = 0;
+      childDirs.forEach(function(c){
+        const a = Math.acos(Math.max(-1, Math.min(1, c.dir.dot(axis))));
+        if (a > coneHalf) coneHalf = a;
+      });
+      coneHalf += MARGIN;
+      const avgD = sumD / cnt;
       ids.forEach(function(x){
-        if (x === pid || fam.has(x) || fixed.has(x)) return;
+        const xRaw = byId[x]; if (!xRaw) return;
+        // 只管更深层级的外来节点：同辈枝条的张开由其父级布局负责；祖先链豁免
+        if (x === pid || fam.has(x) || anc.has(x) || fixed.has(x)) return;
+        if (!(xRaw.level > pRaw.level)) return;
         const xp = map.get(x); if (!xp) return;
         const vx = xp.clone().sub(pp);
         const dx = vx.length();
-        if (dx < 0.3) return;
-        rays.forEach(function(r){
-          // 距离数值判断：径向距离与该子环带相当才算侵入（太近由点对斥力管、太远不在子树范围）
-          if (dx < r.d * 0.55 || dx > r.d * 1.7) return;
-          // 角度偏移量判断：落在顶点->子 轮廓锥内
-          const cosT = vx.dot(r.dir) / (dx * r.d);
-          const theta = Math.acos(Math.max(-1, Math.min(1, cosT)));
-          if (theta >= ANG) return;
-          // 旋出：保持径向距离，方向推到锥外（沿 X 偏离射线的那一侧）
-          const rayDir = r.dir.clone().normalize();
-          let perp = vx.clone().sub(rayDir.clone().multiplyScalar(vx.dot(rayDir)));
-          if (perp.lengthSq() < 1e-6) {
-            perp = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 0, 1), rayDir);
-            if (perp.lengthSq() < 1e-6) perp.set(1, 0, 0);
-          }
-          perp.normalize();
-          const nd = rayDir.clone().multiplyScalar(Math.cos(ROT)).addScaledVector(perp, Math.sin(ROT)).normalize();
-          xp.copy(pp).addScaledVector(nd, dx);
-        });
+        if (dx < 1e-4) return;
+        // 距离数值判断：径向与子环带相当（放宽窗口）
+        if (dx < avgD * 0.45 || dx > avgD * 2.2) return;
+        // 角度判断：相对主轴落在锥内
+        const cosT = vx.dot(axis) / dx;
+        const theta = Math.acos(Math.max(-1, Math.min(1, cosT)));
+        if (theta >= coneHalf) return;
+        // 旋出：保持径向距离，转到锥边界外（沿 X 当前偏离主轴的侧向）
+        let perp = vx.clone().sub(axis.clone().multiplyScalar(vx.dot(axis)));
+        if (perp.lengthSq() < 1e-6) {
+          perp = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 0, 1), axis);
+          if (perp.lengthSq() < 1e-6) perp.set(1, 0, 0);
+        }
+        perp.normalize();
+        const A = coneHalf + PUSH_EXTRA;
+        const nd = axis.clone().multiplyScalar(Math.cos(A)).addScaledVector(perp, Math.sin(A)).normalize();
+        xp.copy(pp).addScaledVector(nd, dx);
       });
     });
   }
