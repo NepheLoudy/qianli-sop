@@ -488,10 +488,13 @@ const DEFAULT_NODES = [
   { id: 'l3-back-robot', text: '机器人', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'l3-back-stock', text: '入库系统', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'l3-back-approve', text: '审批系统', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
+  { id: 'l3-back-approve_c_4602', text: '财务审批', level: 4, parentId: 'l3-back-approve', side: 'R', style: 'normal', color: '#37ff00', crossLinks: '', extraParents: '' },
+  { id: 'l3-back-approve_c_9926', text: '3D打印预约', level: 4, parentId: 'l3-back-approve', side: 'R', style: 'normal', color: '#37ff00', crossLinks: '', extraParents: '' },
+  { id: 'l3-back-approve_c_2675', text: '工单审批', level: 4, parentId: 'l3-back-approve', side: 'R', style: 'normal', color: '#37ff00', crossLinks: '', extraParents: 'l3-back-forum_copy_9061' },
   { id: 'ref-training', text: '各模块通识培训文档', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
   { id: 'l2-eq-basic', text: '基本加工工具培训流程', level: 2, parentId: 'l1-eq', side: 'R', style: 'normal', color: '#ec4899', crossLinks: '', extraParents: '' },
   { id: 'l2-eq-special', text: '特别设备/消耗品管理条例', level: 2, parentId: 'l1-eq', side: 'R', style: 'normal', color: '#ec4899', crossLinks: '', extraParents: '' },
-  { id: 'l3-basic-3d', text: '3D打印机', level: 3, parentId: 'l2-eq-basic', side: 'R', style: 'normal', color: '#34d399', crossLinks: 'https://cquqianli.feishu.cn/wiki/V4hnw4PE2iisrOk1oR0cJdaLnog?from=from_copylink', extraParents: '' },
+  { id: 'l3-basic-3d', text: '3D打印机', link: 'https://cquqianli.feishu.cn/wiki/V4hnw4PE2iisrOk1oR0cJdaLnog?from=from_copylink', level: 3, parentId: 'l2-eq-basic', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: 'l3-back-approve_c_9926' },
   { id: 'l3-basic-lathe', text: '车/钻床', level: 3, parentId: 'l2-eq-basic', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'l3-basic-cnc', text: '雕铣机', link: 'https://cquqianli.feishu.cn/wiki/JAZQw9ZD8ix88dkwcLDcvIHKnOc', level: 3, parentId: 'l2-eq-basic', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'l3-basic-cnc2', text: 'CNC加工设备', link: 'https://cquqianli.feishu.cn/wiki/GcKVwnJBDi83OqkGqPYcZWsrnFb', level: 3, parentId: 'l2-eq-basic', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
@@ -513,7 +516,7 @@ const DEFAULT_NODES = [
   { id: 'ref-toolrule', text: '基于各组工具分发和管理办法制定', level: 3, parentId: 'l2-base-store', side: 'L', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
   { id: 'ref-elecrule', text: '包括电机、线材等工具存放位置、取用、报废规范', level: 3, parentId: 'l2-base-store', side: 'L', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
   { id: 'ref-matrule', text: '包括存储、采购、使用规范', level: 3, parentId: 'l2-base-store', side: 'L', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
-  { id: 'n_mtkh1ezr62', text: '文档与知识库规范', link: 'https://cquqianli.feishu.cn/wiki/Q8tpwej4JiLeGNkJv5mc3DLenmh?from=from_copylink', level: 3, parentId: 'l3-life-flow', side: 'R', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' }
+  { id: 'n_mtkh1ezr62', text: '文档与知识库规范', link: 'https://cquqianli.feishu.cn/wiki/Q8tpwej4JiLeGNkJv5mc3DLenmh?from=from_copylink', level: 3, parentId: 'l3-life-flow', side: 'R', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: 'l1-base' }
 ];
 
 let g_nodes = JSON.parse(JSON.stringify(DEFAULT_NODES));
