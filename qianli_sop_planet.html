@@ -1312,12 +1312,6 @@ function rebuildScene() {
     nodeMeshes.forEach(m => { m.lit = lit.has(m.raw.id); });
   })();
 
-  // ===== 默认视图 = 聚焦 root：页面加载与每次编辑重建后，未聚焦则静默进入聚焦root =====
-  if (!focused) {
-    const rootMesh = nodeMeshes.find(m => m.raw.id === 'root');
-    if (rootMesh) applyFocus(rootMesh, { silent: true });
-  }
-
   // ============ 重新加同心球层：后半球壳 + 近端淡出 ============
   (function addShells(){
     if (!shellsGroup) return;
@@ -1974,7 +1968,7 @@ function applyFocus(centerMesh, opts){
   // 聚焦 root（千里基本工作SOP）= 查看全貌：等同退出聚焦，保持默认全景布局
   if (centerMesh.raw.id === 'root') {
     if (focused) clearFocus();
-    else showToast('千里基本工作SOP：全景模式（默认状态）');
+    else if (!silent) showToast('千里基本工作SOP：全景模式（默认状态）');
     return;
   }
   // ---------- A → B 平滑切换：拍当前每个节点实际 pos 快照 ----------
