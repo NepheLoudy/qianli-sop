@@ -416,7 +416,7 @@
       </div>
       <div class="section-title">节点编辑</div>
       <div class="toolbar" style="margin-bottom:6px;">
-        <span style="font-size:10px;color:#64748b;">Level 0=球心｜1=内｜2=中｜3=外｜样式：普通球/虚线圈/方块。<b style="color:#38bdf8;">跨链接</b>=特别关联其他节点ID（逗号分隔，聚焦时一并拉向中心）。<b style="color:#fb923c;">额外父节点</b>=可链接另一节点当"父"，显示继承线。</span>
+        <span style="font-size:10px;color:#64748b;">Level 0=球心｜1=内｜2=中｜3=外｜样式：普通球/虚线圈/方块/<b style="color:#34d399;">负责人(人形)</b>。<b style="color:#34d399;">负责人节点</b>：链接栏填公示文本，双击节点弹出文本框（不跳转）。<b style="color:#38bdf8;">跨链接</b>=特别关联其他节点ID（逗号分隔，聚焦时一并拉向中心）。<b style="color:#fb923c;">额外父节点</b>=可链接另一节点当"父"，显示继承线。</span>
       </div>
       <div class="tree-edit-wrap">
         <table class="tree-edit-table">
@@ -424,7 +424,7 @@
             <tr>
               <th class="col-level">层级</th>
               <th style="min-width:180px;">节点文本</th>
-              <th style="min-width:220px;">链接 URL</th>
+              <th style="min-width:220px;">链接 / 公示文本</th>
               <th class="col-type">父ID</th>
               <th class="col-type">Side</th>
               <th class="col-type">样式</th>
@@ -687,6 +687,16 @@ function makeBallTexture(color, style='normal', nodeId='') {
     ctx.beginPath(); ctx.arc(cx,cy,size*0.4,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
     ctx.lineWidth = 1.5; ctx.strokeStyle = lighten(color, 25);
     ctx.beginPath(); ctx.arc(cx,cy,size*0.33,0,Math.PI*2); ctx.stroke();
+  } else if (style === 'person') {
+    // 负责人(人形)：光晕 + 人形剪影（头 + 肩），用于管理人/负责人公示
+    const sh = ctx.createRadialGradient(cx,cy,0,cx,cy,size/2);
+    sh.addColorStop(0,hexToRgba(color,0.45)); sh.addColorStop(0.5,hexToRgba(color,0.16)); sh.addColorStop(1,hexToRgba(color,0));
+    ctx.fillStyle = sh; ctx.fillRect(0,0,size,size);
+    const pg = ctx.createLinearGradient(cx, cy - size*0.34, cx, cy + size*0.36);
+    pg.addColorStop(0,lighten(color,35)); pg.addColorStop(0.55,color); pg.addColorStop(1,darken(color,28));
+    ctx.fillStyle = pg; ctx.strokeStyle = darken(color, 40); ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(cx, cy - size*0.15, size*0.115, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx, cy + size*0.32, size*0.25, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
   } else {
     const glow = ctx.createRadialGradient(cx,cy,0,cx,cy,size/2);
     glow.addColorStop(0,hexToRgba(color,0.5)); glow.addColorStop(0.45,hexToRgba(color,0.18)); glow.addColorStop(1,hexToRgba(color,0));
@@ -947,7 +957,7 @@ function rebuildScene() {
   });
 
   document.getElementById('hudStats').innerHTML =
-    `🌐 <b>${valid.length}</b> 节点 · 🔗 <b>${valid.filter(x=>x.link&&x.link.trim()).length}</b> 可跳转 · ➖ <b>${valid.filter(x=>x.parentId).length}</b> 连线`;
+    `🌐 <b>${valid.length}</b> 节点 · 🔗 <b>${valid.filter(x=>x.link&&x.link.trim()&&x.style!=='person').length}</b> 可跳转 · 👤 <b>${valid.filter(x=>x.style==='person').length}</b> 负责人 · ➖ <b>${valid.filter(x=>x.parentId).length}</b> 连线`;
 
   // 连线：三种类型
   // - type='parent' 原生父子关系（按层级配色）
@@ -1018,7 +1028,7 @@ function rebuildScene() {
     label.position.y = -sz.sprite*0.55 - lH*0.55;
 
     let linkIcon = null;
-    if (n.link && n.link.trim()) {
+    if (n.link && n.link.trim() && n.style !== 'person') {
       const { tex:it } = makeLabelTexture('🔗', '#fbbf24');
       linkIcon = new THREE.Sprite(new THREE.SpriteMaterial({ map: it, transparent: true, depthWrite: false }));
       const ia = 1;
@@ -1318,14 +1328,18 @@ function applyHover(nh) {
 
   const tt = document.getElementById('nodeTooltip');
   const hasLink = nh.raw.link && nh.raw.link.trim();
+  const isPerson = nh.raw.style === 'person';
+  const hoverBody = isPerson
+    ? `<div class="tt-link">👤 负责人公示${hasLink ? '' : '（暂未填写文本）'}</div><div style="font-size:10px;color:#34d399;margin-top:3px;">✓ 单击聚焦，双击查看公示文本</div>`
+    : (hasLink
+      ? `<div class="tt-link">🔗 ${escapeHtml(nh.raw.link)}</div><div style="font-size:10px;color:#34d399;margin-top:3px;">✓ 单击聚焦，双击跳转</div>`
+      : `<div class="tt-link" style="color:#94a3b8;">○ 暂未设置链接（编辑面板可补充）</div><div style="font-size:10px;color:#60a5fa;margin-top:3px;">单击节点聚焦</div>`);
   tt.innerHTML = `
     <div class="tt-title">${escapeHtml(nh.raw.text)}</div>
-    <div style="color:#cbd5e1;">层级：<b style="color:#e0e7ff;">L${nh.raw.level}</b> &nbsp; 样式：<b style="color:#e0e7ff;">${nh.raw.style}</b></div>
-    ${hasLink
-      ? `<div class="tt-link">🔗 ${escapeHtml(nh.raw.link)}</div><div style="font-size:10px;color:#34d399;margin-top:3px;">✓ 单击聚焦，双击跳转</div>`
-      : `<div class="tt-link" style="color:#94a3b8;">○ 暂未设置链接（编辑面板可补充）</div><div style="font-size:10px;color:#60a5fa;margin-top:3px;">单击节点聚焦</div>`}
+    <div style="color:#cbd5e1;">层级：<b style="color:#e0e7ff;">L${nh.raw.level}</b> &nbsp; 样式：<b style="color:#e0e7ff;">${isPerson ? '负责人(人形)' : nh.raw.style}</b></div>
+    ${hoverBody}
     <div class="tt-meta">父节点：${escapeHtml(nh.raw.parentId||'-')} &nbsp; ID：${escapeHtml(nh.raw.id)}</div>`;
-  canvas.style.cursor = hasLink ? 'pointer' : 'grab';
+  canvas.style.cursor = 'pointer';
 }
 // 真正对外的 click 入口：先判断是否是拖动，再执行节点/空白/双击/单击判定
 function onCanvasClickSafe(ev) {
@@ -1360,8 +1374,9 @@ function _dispatchClickInner(ev) {
 
   // 情况 2：点中节点 —— 做双击 / 单击判定
   if (_clkPendingMesh === nh && _clkPendingTimer) {
-    // 第二次点击（间隔 < 250ms）→ 判定为双击 → 跳转链接
+    // 第二次点击（间隔 < 250ms）→ 判定为双击：负责人节点弹公示文本，其余跳转链接
     clearPendingClick();
+    if (nh.raw.style === 'person') { showInfoPopup(nh.raw); return; }
     const href = nh.raw.link && nh.raw.link.trim();
     if (href) {
       window.open(href, '_blank', 'noopener,noreferrer');
@@ -1390,6 +1405,29 @@ function _dispatchClickInner(ev) {
   }, 250);
 }
 function escapeHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+// 负责人节点：双击弹出公示文本框（不跳转；公开页面同样生效）
+function showInfoPopup(n){
+  const old = document.getElementById('personInfoPopup');
+  if (old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = 'personInfoPopup';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(2,6,23,0.72);backdrop-filter:blur(3px);z-index:99999;display:flex;align-items:center;justify-content:center;';
+  const txt = String((n && n.link) || '').trim();
+  const box = document.createElement('div');
+  box.style.cssText = 'max-width:440px;width:88%;background:linear-gradient(160deg,#101a33,#0b1226);border:1px solid rgba(122,162,255,0.35);border-radius:14px;padding:20px 22px;color:#dfe7ff;box-shadow:0 18px 60px rgba(0,0,0,0.55);';
+  box.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:22px;">👤</span>
+      <b style="font-size:17px;color:#7aa2ff;">${escapeHtml(n && n.text)}</b>
+    </div>
+    <div style="font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:break-word;background:rgba(59,130,246,0.08);border:1px solid rgba(122,162,255,0.18);border-radius:10px;padding:12px 14px;${txt ? 'color:#e2e8f0;' : 'color:#94a3b8;font-style:italic;'}">${txt ? escapeHtml(txt) : '（暂未填写公示文本）'}</div>
+    <div style="margin-top:12px;text-align:right;font-size:11px;color:#64748b;">点击空白处关闭</div>`;
+  ov.appendChild(box);
+  ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
+  const onKey = (e) => { if (e.key === 'Escape') { ov.remove(); document.removeEventListener('keydown', onKey); } };
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(ov);
+}
 
 /* ============ 聚焦（中心模式）相关 ============ */
 function _splitIds(s){
@@ -1946,7 +1984,8 @@ function renderTreeTable() {
   const STYLE_OPTIONS = [
     {v:'normal', t:'普通球'},
     {v:'example',t:'示例(虚线圈)'},
-    {v:'ref-box',t:'引用框(方块)'}
+    {v:'ref-box',t:'引用框(方块)'},
+    {v:'person', t:'负责人(人形)'}
   ];
   const tbody = document.getElementById('treeTableBody');
   if (!tbody) return;
@@ -1968,8 +2007,9 @@ function renderTreeTable() {
         ${levelTag}<br>
         <input type="number" min="0" max="5" value="${n.level}" data-idx="${i}" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
       </td>
-      <td>${indentHtml}<input type="text" value="${escapeAttr(n.text)}"  data-idx="${i}" data-key="text"></td>
-      <td><input type="url"  value="${escapeAttr(n.link)}"  data-idx="${i}" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td>${indentHtml}<input type="text" value="${escapeAttr(n.text)}"  data-idx="${i}" data-key="text">
+        <div class="row-id" data-idx="${i}" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 ${escapeHtml(n.id)}</div></td>
+      <td><input type="${n.style==='person' ? 'text' : 'url'}"  value="${escapeAttr(n.link)}"  data-idx="${i}" data-key="link" placeholder="${n.style==='person' ? '公示文本：双击节点弹出（不跳转）' : 'https:// 飞书文档/看板链接'}"></td>
       <td class="col-type"><input type="text" value="${escapeAttr(n.parentId)}" data-idx="${i}" data-key="parentId" placeholder="父节点ID"></td>
       <td class="col-type">
         <select data-idx="${i}" data-key="side">
@@ -1983,6 +2023,7 @@ function renderTreeTable() {
       <td><input type="text" value="${escapeAttr(n.extraParents||'')}" data-idx="${i}" data-key="extraParents" placeholder="父ID1,父ID2"></td>
       <td class="col-color"><input type="color" value="${sc}" data-idx="${i}" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
       <td class="col-act">
+        <button class="btn btn-green btn-xs"  data-act="addchild" data-idx="${i}" title="在此节点下新建子节点">＋子</button>
         <button class="btn btn-purple btn-xs" data-act="dup" data-idx="${i}">复</button>
         <button class="btn btn-red btn-xs"    data-act="del" data-idx="${i}">删</button>
       </td>`;
@@ -1998,14 +2039,31 @@ function renderTreeTable() {
       if (el.dataset.type === 'num') v = +v;
       g_nodes[idx][key] = v;
       rebuildScene();
+      if (key === 'style') renderTreeTable(); // 切换负责人样式后，刷新该行输入框提示
     });
   });
   tbody.querySelectorAll('button[data-act]').forEach(b => {
     b.addEventListener('click', () => {
       const idx = +b.dataset.idx;
       const act = b.dataset.act;
+      if (act === 'addchild') addChildNode(idx);
       if (act === 'dup') duplicateNode(idx);
       if (act === 'del') deleteNode(idx);
+    });
+  });
+  // 点击 🆔 徽标复制节点ID（填父节点ID/跨链接ID时直接粘贴）
+  tbody.querySelectorAll('.row-id').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = g_nodes[+el.dataset.idx].id;
+      const done = () => showToast('已复制ID：' + id);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(id).then(done).catch(() => {});
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = id; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) {}
+        ta.remove();
+      }
     });
   });
 }
@@ -2014,6 +2072,13 @@ function addNode() {
   const id = 'n_' + Date.now().toString(36) + Math.floor(Math.random()*1000).toString(36);
   g_nodes.push({id, text:'新节点', link:'', level:3, parentId:'root', side:'R', style:'normal', color:'#34d399', crossLinks:'', extraParents:''});
   renderTreeTable(); rebuildScene(); showToast('已添加节点');
+}
+function addChildNode(idx){
+  const p = g_nodes[idx];
+  const id = p.id + '_c_' + Math.floor(Math.random()*10000);
+  const child = {id, text:'新子节点', link:'', level:Math.min(p.level+1,5), parentId:p.id, side:(p.side==='L'?'L':'R'), style:'normal', color:p.color||'#34d399', crossLinks:'', extraParents:''};
+  g_nodes.splice(idx+1, 0, child);
+  renderTreeTable(); rebuildScene(); showToast('已在 "' + p.text + '" 下新增子节点');
 }
 function duplicateNode(idx){
   const src = g_nodes[idx];
