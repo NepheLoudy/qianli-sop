@@ -1665,6 +1665,7 @@ function applyFocus(centerMesh){
   focusTargets = calcFocusTargets(centerMesh);
   focusRelatedSet = getRelatedIds(centerMesh.raw);
   focusDir = 1;
+  highlightRowInTable(centerMesh.raw.id);
   showToast('聚焦：' + centerMesh.raw.text + '（再次点击其他节点平滑切换，点击空白退出）');
 }
 // 退出聚焦
@@ -1679,6 +1680,27 @@ function clearFocus(){
   focusT = 1; // 从 1 → 0 反向过渡；起点是 snapshot，终点是 basePos + 浮动
   focusDir = -1;
   showToast('已退出聚焦');
+}
+// 星球聚焦 → 编辑表联动：面板折叠则展开，表格滚动到对应行并闪烁高亮
+function highlightRowInTable(id){
+  const panel = document.getElementById('editPanel');
+  if (panel && !panel.classList.contains('open')) {
+    panel.classList.add('open');
+    [100, 260, 450].forEach(ms => setTimeout(onResize, ms));
+  }
+  const tbody = document.getElementById('treeTableBody');
+  if (!tbody) return; // 公开页无编辑面板
+  const idx = g_nodes.findIndex(n => n.id === id);
+  const row = tbody.children[idx];
+  if (!row) return;
+  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  row.style.background = 'rgba(56,189,248,0.28)';
+  row.style.boxShadow = 'inset 0 0 0 1px rgba(56,189,248,0.55)';
+  clearTimeout(highlightRowInTable._t);
+  highlightRowInTable._t = setTimeout(() => {
+    row.style.background = '';
+    row.style.boxShadow = '';
+  }, 1800);
 }
 
 /* ============ 动画循环 ============ */
