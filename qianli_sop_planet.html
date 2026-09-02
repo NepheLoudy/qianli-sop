@@ -1428,8 +1428,9 @@ function rebuildScene() {
 
     // 拥有负责人(person)子节点的节点：图标右下角复制小人形标注
     let personBadge = null;
-    if (n.style !== 'person' && g_nodes.some(k => k.style === 'person' && (k.parentId === n.id || parseExtraParents(k).indexOf(n.id) >= 0))) {
-      const { tex: bt } = makePersonBadgeTexture(color);
+    const personKid = n.style !== 'person' ? g_nodes.find(k => k.style === 'person' && (k.parentId === n.id || parseExtraParents(k).indexOf(n.id) >= 0)) : null;
+    if (personKid) {
+      const { tex: bt } = makePersonBadgeTexture(personKid.color || '#34d399');
       personBadge = new THREE.Sprite(new THREE.SpriteMaterial({ map: bt, transparent: true, depthWrite: false, opacity: 0.95 }));
       personBadge.renderOrder = 2;
       const bs2 = sz.sprite;
@@ -2384,6 +2385,7 @@ function animate() {
       m.ball.material.opacity = 0;
       if (m.label) m.label.material.opacity = 0;
       const fp = focused && (focused.raw.id === m.raw.parentId || parseExtraParents(m.raw).indexOf(focused.raw.id) >= 0);
+      m.__lineHidden = !fp; // 看板显示时连线保持可见
       if (m.infoPanel) {
         m.infoPanel.material.opacity = fp ? 0.95 : 0;
         if (fp) {
@@ -2398,6 +2400,7 @@ function animate() {
       }
     } else {
       m.__hidden = false;
+      m.__lineHidden = false;
       if (m.personBadge) m.personBadge.material.opacity = Math.max(0.55, opacityGoal);
     }
 
@@ -2420,7 +2423,7 @@ function animate() {
       const sm = li.sMesh, tm = li.tMesh;
       if (!sm || !tm) continue;
       const bi = i * 6;
-      if (sm.__hidden || tm.__hidden) {
+      if (sm.__lineHidden || tm.__lineHidden) {
         nArr[bi]=0;nArr[bi+1]=0;nArr[bi+2]=0;nArr[bi+3]=0;nArr[bi+4]=0;nArr[bi+5]=0;
         if (hArr) { hArr[bi]=0;hArr[bi+1]=0;hArr[bi+2]=0;hArr[bi+3]=0;hArr[bi+4]=0;hArr[bi+5]=0; }
         continue;
