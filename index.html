@@ -1039,8 +1039,8 @@ function rebuildScene() {
                                : (clusterOf[a] !== clusterOf[b] ? 0.55 : 0));
     relaxOverlaps(m, 6, new Set(['root']), space, pairGap);
     for (let g = 0; g < 3; g++) {
-      guardSegments(m, byId, new Set(['root']), space, 1);
       relaxOverlaps(m, 2, new Set(['root']), space, pairGap);
+      guardSegments(m, byId, new Set(['root']), space, 1);
     }
   })();
 
@@ -1800,8 +1800,8 @@ function calcFocusTargets(centerMesh){
                                : (clusterOf[a] !== clusterOf[b] ? 0.55 : 0));
     relaxOverlaps(targets, 6, new Set([cid]), space, pairGap);
     for (let g = 0; g < 3; g++) {
-      guardSegments(targets, byId, new Set([cid]), space, 1);
       relaxOverlaps(targets, 2, new Set([cid]), space, pairGap);
+      guardSegments(targets, byId, new Set([cid]), space, 1);
     }
   })();
 
