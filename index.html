@@ -764,6 +764,72 @@ function hexToRgba(h,a){const[r,g,b]=hex2rgb(h);return 'rgba('+r+','+g+','+b+','
 /* ============ 原状布局：方向指向性树（中心节点均匀分布下一层；子节点沿父朝外方向锥延伸，不自由生长） ============ */
 // 半球/全锥分布：围绕任意轴，给 n 个均匀面密度点，半径为 radius，锥半角 coneHalf（弧度）
 // 返回相对位置（长度 ≈ radius，中心方向对齐 axis）
+// 每个节点的子树规模（自身+全部后代，递归到末端）
+function buildSubtreeSizes(){
+  const kids = {};
+  g_nodes.forEach(n => { if (n.parentId) (kids[n.parentId] = kids[n.parentId] || []).push(n.id); });
+  const size = {};
+  function sz(id){
+    if (size[id] !== undefined) return size[id];
+    size[id] = 0; // 防环
+    let s = 1;
+    (kids[id] || []).forEach(k => { s += sz(k); });
+    size[id] = s; return s;
+  }
+  g_nodes.forEach(n => sz(n.id));
+  return size;
+}
+// 加权球面分布：子树越大面积份额越大（面积->角度自带 sqrt 缩放），方位角黄金角错开
+function weightedSpherePoints(raws, r, weightOf){
+  const out = [];
+  const n = raws.length;
+  if (n <= 0) return out;
+  const phi = Math.PI * (3 - Math.sqrt(5));
+  const w = raws.map(x => Math.max(1, weightOf(x)));
+  const total = w.reduce((a, b) => a + b, 0);
+  let acc = 0;
+  raws.forEach(function(x, i){
+    const u0 = acc / total; acc += w[i];
+    const u = (u0 + acc / total) / 2;          // 面积区间中点
+    const z = 1 - 2 * u;                        // 球面面积均匀的极角
+    const t = Math.sqrt(Math.max(0, 1 - z * z));
+    const azimuth = phi * i;                    // 黄金角错开方位
+    out.push(new THREE.Vector3(t * Math.cos(azimuth) * r, z * r, t * Math.sin(azimuth) * r));
+  });
+  return out;
+}
+// 加权锥面分布：同理，子树大的兄弟占更宽的锥面环带；独生子女保持正对父方向
+function weightedConePoints(axis, raws, coneHalf, radius, weightOf){
+  const out = [];
+  const n = raws.length;
+  if (n <= 0) return out;
+  const dir = axis.clone().normalize();
+  const phi = Math.PI * (3 - Math.sqrt(5));
+  const up = Math.abs(dir.y) < 0.9 ? new THREE.Vector3(0,1,0) : new THREE.Vector3(1,0,0);
+  const xAxis = new THREE.Vector3().crossVectors(up, dir).normalize();
+  const yAxis = new THREE.Vector3().crossVectors(dir, xAxis).normalize();
+  if (n === 1) {                                // 独生子女：沿父方向正前方延伸
+    out.push(dir.clone().multiplyScalar(radius));
+    return out;
+  }
+  const w = raws.map(x => Math.max(1, weightOf(x)));
+  const total = w.reduce((a, b) => a + b, 0);
+  let acc = 0;
+  raws.forEach(function(x, i){
+    const u0 = acc / total; acc += w[i];
+    const u = (u0 + acc / total) / 2;
+    const theta = coneHalf * Math.sqrt(u);      // 锥面面积均匀映射
+    const azimuth = phi * i;
+    const s = Math.sin(theta), c = Math.cos(theta);
+    const local = new THREE.Vector3(s * Math.cos(azimuth), s * Math.sin(azimuth), c);
+    out.push(new THREE.Vector3()
+      .addScaledVector(xAxis, local.x)
+      .addScaledVector(yAxis, local.y)
+      .addScaledVector(dir,   local.z)
+      .multiplyScalar(radius));
+  });
+  return out;
+}
 function coneWorldPoints(axis, n, coneHalf, radius) {
   const out = [];
   if (n <= 0) return out;
@@ -1045,6 +1111,7 @@ function rebuildScene() {
   clearObjects();
   const byId = {};
   g_nodes.forEach(n => byId[n.id] = n);
+  const subtreeSizes = buildSubtreeSizes();
   const valid = g_nodes.filter(n => n.id && (n.id === 'root' || byId[n.parentId]));
   const vById = {}; valid.forEach(n => vById[n.id] = n);
   const byLevel = {};
@@ -1063,10 +1130,11 @@ function rebuildScene() {
   const l1List = (byLevel[1]?.L||[]).concat(byLevel[1]?.any||[]).concat(byLevel[1]?.R||[]);
   if (l1List.length) {
     const R1 = shellR(1);
-    const pts = fiboSpherePoints(l1List.length, R1);
     // 按 side 分类的稳定性重排：L 排前面、R 排后面、any 在中间，保证同 side 的节点相对集中
     const sideOrder = (n) => (n.side==='L' ? 0 : n.side==='R' ? 2 : 1);
     const ordered = [...l1List].sort((a,b) => sideOrder(a) - sideOrder(b) || a.id.localeCompare(b.id));
+    // 加权球面：子树越大（后代越多）的 L1 分到越大的角向空间
+    const pts = weightedSpherePoints(ordered, R1, n => subtreeSizes[n.id] || 1);
     ordered.forEach((n, i) => {
       // 轻微 side 偏移 + 球面基准：保持均匀，但 side=L 偏 -X，side=R 偏 +X（小量，不破坏均匀）
       const p = pts[i].clone();
@@ -1098,7 +1166,7 @@ function rebuildScene() {
         level === 4 ? 70 : 72
       ) * Math.PI / 180;
       // 兄弟节点相对父位置，围绕 parentDir 均匀分布
-      const relPts = coneWorldPoints(parentDir, siblings.length, coneHalf, step);
+      const relPts = weightedConePoints(parentDir, siblings, coneHalf, step, n => subtreeSizes[n.id] || 1);
       // side 一致性轻偏移：L 子在 parentDir 左侧多一点，R 子在右侧多一点（正交父方向），不破坏锥方向
       const up = Math.abs(parentDir.y) < 0.9 ? new THREE.Vector3(0,1,0) : new THREE.Vector3(1,0,0);
       const sideAxis = new THREE.Vector3().crossVectors(up, parentDir).normalize(); // 父方向的"左右"
@@ -1731,6 +1799,8 @@ function calcFocusTargets(centerMesh){
   if (!centerMesh) return targets;
   const cid = centerMesh.raw.id;
   const byId = {}; g_nodes.forEach(n => byId[n.id] = n);
+  const subtreeSizesF = buildSubtreeSizes();
+  const centerLevel = centerMesh.raw.level;
   const related = getRelatedIds(centerMesh.raw);
   related.delete(cid);
 
@@ -1772,7 +1842,11 @@ function calcFocusTargets(centerMesh){
       if (ap !== bp) return ap - bp;
       return a.localeCompare(b);
     });
-    const pts = fiboSpherePoints(sortedIds.length, R1);
+    const pts = weightedSpherePoints(sortedIds, R1, id => {
+      const raw = byId[id];
+      if (!raw || raw.level <= centerLevel) return 1; // 父侧锚点不占子树扇区
+      return subtreeSizesF[id] || 1;
+    });
     sortedIds.forEach((id, i) => targets.set(id, pts[i]));
   }
 
@@ -1837,7 +1911,7 @@ function calcFocusTargets(centerMesh){
     if (head.levelDiff === 0) {
       const remaining = kids.filter(kid => !targets.has(kid) && !queued.has(kid));
       if (remaining.length) {
-        const pts = fiboSpherePoints(remaining.length, R_CHILD_ABS);
+        const pts = weightedSpherePoints(remaining, R_CHILD_ABS, id => subtreeSizesF[id] || 1);
         remaining.forEach((kid, i) => {
           if (!targets.has(kid)) targets.set(kid, pts[i]);
           if (!queued.has(kid)) { queued.add(kid); queue.push({ id: kid, levelDiff: diff }); }
@@ -1849,7 +1923,7 @@ function calcFocusTargets(centerMesh){
       const coneHalf = coneHalfFor(diff, kids.length);
       const needPlace = kids.filter(kid => !targets.has(kid) && !queued.has(kid));
       if (needPlace.length) {
-        const relPts = coneWorldPoints(outward, needPlace.length, coneHalf, step);
+        const relPts = weightedConePoints(outward, needPlace.map(id => byId[id]).filter(Boolean), coneHalf, step, n => subtreeSizesF[n.id] || 1);
         const up = Math.abs(outward.y) < 0.9 ? new THREE.Vector3(0,1,0) : new THREE.Vector3(1,0,0);
         const sideAxis = new THREE.Vector3().crossVectors(up, outward).normalize();
         const upAxis   = new THREE.Vector3().crossVectors(outward, sideAxis).normalize();
