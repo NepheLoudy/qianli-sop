@@ -6,12 +6,16 @@
 #   GET  /ping            -> returns "pong" (probe)
 #   GET  /current-html    -> returns qianli_sop_planet.html source on disk
 #   POST /write-html      -> writes request body back to qianli_sop_planet.html
+#   GET  /three.min.js, /OrbitControls.js
+#                          -> serves the two js libs the edit page needs
 #
 # Usage:
 #   Double click "启动本地开发助手.bat" in the same folder.
 #   Keep this window open while editing. Close it to stop.
 ################################################
-param()
+param(
+    [int]$Port = 7788     # override for tests; the edit page hardcodes 7788
+)
 $ErrorActionPreference = "Stop"
 
 # Resolve root folder (this script + qianli_sop_planet.html must be side by side)
@@ -27,7 +31,7 @@ if (-not (Test-Path -LiteralPath $TargetHtml)) {
 }
 
 $Listener = New-Object System.Net.HttpListener
-$Prefix = "http://127.0.0.1:7788/"
+$Prefix = "http://127.0.0.1:$Port/"
 $Listener.Prefixes.Add($Prefix)
 try {
     $Listener.Start()
@@ -100,7 +104,25 @@ while ($Listener.IsListening) {
                 continue
             }
             default {
-                WriteResp $ctx 404 "Not Found"
+                # Static assets referenced by the edit page (whitelisted).
+                # Without these the page loads but Three.js 404s and the scene
+                # never finishes building ("正在加载 Three.js 与构建星球…").
+                $name = $path.TrimStart('/')
+                if (@('three.min.js','OrbitControls.js') -notcontains $name) {
+                    WriteResp $ctx 404 "Not Found"
+                    continue
+                }
+                $f = Join-Path $Root $name
+                if (-not (Test-Path -LiteralPath $f)) { WriteResp $ctx 404 "Not Found"; continue }
+                $bytes = [System.IO.File]::ReadAllBytes($f)
+                $r = $ctx.Response
+                $r.StatusCode = 200
+                $r.ContentType = "application/javascript; charset=utf-8"
+                $r.Headers["Cache-Control"] = "no-store"
+                $r.ContentLength64 = $bytes.Length
+                $r.OutputStream.Write($bytes, 0, $bytes.Length)
+                $r.OutputStream.Close()
+                Write-Host "  -> 200 $name ($($bytes.Length) bytes)" -ForegroundColor DarkGray
                 continue
             }
         }
