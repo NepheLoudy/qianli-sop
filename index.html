@@ -843,6 +843,19 @@ function branchIdOf(id, byId){
   }
   return cur ? cur.id : id;
 }
+// 节点所属 L2 子树簇（沿父链上溯到"父是 L1"的那一级）
+function clusterIdOf(id, byId){
+  let cur = byId[id];
+  const guard = new Set();
+  while (cur && cur.parentId && byId[cur.parentId] && !guard.has(cur.id)) {
+    guard.add(cur.id);
+    if (cur.parentId === 'root') return cur.id;      // L1：自身即簇
+    const p = byId[cur.parentId];
+    if (p && p.parentId === 'root') return cur.id;   // L2：簇代表
+    cur = p;
+  }
+  return cur ? cur.id : id;
+}
 function nodeSpaceOf(raw){
   if (!raw) return 0.8;
   if ((raw.crossLinks && raw.crossLinks.trim()) || (raw.extraParents && raw.extraParents.trim())) return 1.05;
@@ -956,13 +969,15 @@ function rebuildScene() {
   (function(){
     const m = new Map();
     for (const id in positions) m.set(id, positions[id]);
-    const space = {}, branchOf = {};
+    const space = {}, branchOf = {}, clusterOf = {};
     for (const id in positions) {
       space[id] = nodeSpaceOf(byId[id]);
       branchOf[id] = branchIdOf(id, byId);
+      clusterOf[id] = clusterIdOf(id, byId);
     }
     relaxOverlaps(m, 10, new Set(['root']), space,
-      (a, b) => (branchOf[a] !== branchOf[b] ? 0.9 : 0));
+      (a, b) => (branchOf[a] !== branchOf[b] ? 0.9
+               : (clusterOf[a] !== clusterOf[b] ? 0.55 : 0)));
   })();
 
   document.getElementById('hudStats').innerHTML =
@@ -981,7 +996,7 @@ function rebuildScene() {
     posH.push(sp.x,sp.y,sp.z, tp.x,tp.y,tp.z);
     // HL 统一金黄
     colH.push(1,0.745,0.216, 1,0.745,0.216);
-    linkInfo.push({ sId, tId, type: type||'parent' });
+    linkInfo.push({ sId, tId, type: type||'parent', col });
   }
   valid.forEach(n => {
     if (n.parentId) _addLink(n.parentId, n.id, (()=>{
@@ -1711,13 +1726,15 @@ function calcFocusTargets(centerMesh){
 
   // ===== 斥力松弛：聚焦布局同样消解重叠；跨链接节点个人空间更大（延续基础态效果）=====
   (function(){
-    const space = {}, branchOf = {};
+    const space = {}, branchOf = {}, clusterOf = {};
     g_nodes.forEach(n => {
       space[n.id] = nodeSpaceOf(n);
       branchOf[n.id] = branchIdOf(n.id, byId);
+      clusterOf[n.id] = clusterIdOf(n.id, byId);
     });
     relaxOverlaps(targets, 10, new Set([cid]), space,
-      (a, b) => (branchOf[a] !== branchOf[b] ? 0.9 : 0));
+      (a, b) => (branchOf[a] !== branchOf[b] ? 0.9
+               : (clusterOf[a] !== clusterOf[b] ? 0.55 : 0)));
   })();
 
   return targets;
@@ -1999,19 +2016,30 @@ function animate() {
         }
       }
     }
+    // 聚焦选择性显色：相关线段保持原色，无关线段颜色压暗（加色混合下近黑即近乎不可见）
+    const cAttr = linkLinesNormal.geometry.attributes.color;
+    if (cAttr) {
+      const cArr = cAttr.array;
+      const dimAll = !(focused && ft > 1e-6 && focusRelatedSet);
+      for (let i = 0; i < linkInfo.length; i++) {
+        const li = linkInfo[i];
+        if (!li.col) continue;
+        const f = dimAll ? 1 : ((focusRelatedSet.has(li.sId) && focusRelatedSet.has(li.tId)) ? 1 : 0.1);
+        const bi = i * 6;
+        cArr[bi+0] = li.col[0]*f; cArr[bi+1] = li.col[1]*f; cArr[bi+2] = li.col[2]*f;
+        cArr[bi+3] = li.col[0]*f; cArr[bi+4] = li.col[1]*f; cArr[bi+5] = li.col[2]*f;
+      }
+      cAttr.needsUpdate = true;
+    }
     nAttr.needsUpdate = true;
     if (hAttr) hAttr.needsUpdate = true;
   }
-  // 连线透明度：聚焦=相关线段金色高亮、无关线段原色淡（每帧同步里已做选择性置零）
+  // 连线透明度：聚焦时相关线段原色显色、无关线段靠上方压暗；金色高亮仅悬停使用
   if (linkMatNormal) {
-    if (ft > 1e-6 && focusRelatedSet) {
-      linkMatNormal.opacity = 0.08; // 无关整体淡
-    } else {
-      linkMatNormal.opacity = hovered ? 0.1 : 0.55;
-    }
+    linkMatNormal.opacity = hovered ? 0.1 : 0.55;
   }
   if (linkMatHL) {
-    linkMatHL.opacity = (hovered || (focused && ft > 0.4)) ? 0.95 : 0;
+    linkMatHL.opacity = hovered ? 0.95 : 0;
   }
 
   controls.update();
