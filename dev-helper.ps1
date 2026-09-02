@@ -71,6 +71,8 @@ function WriteResp($ctx, $code, $text, $ctype="text/plain; charset=utf-8") {
     $r = $ctx.Response
     $r.StatusCode = $code
     $r.ContentType = $ctype
+    # 永远不缓存：编辑的是磁盘最新内容，浏览器缓存旧页面会造成"改了没生效"的假象
+    $r.Headers["Cache-Control"] = "no-store"
     $r.ContentLength64 = $buf.Length
     $r.OutputStream.Write($buf, 0, $buf.Length)
     $r.OutputStream.Close()
