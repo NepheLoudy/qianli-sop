@@ -863,7 +863,7 @@ function rebuildScene() {
       if (n.side === 'L') p.x = Math.sign(p.x||-1) * Math.max(Math.abs(p.x), 0.8) - 0.1;
       if (n.side === 'R') p.x = Math.sign(p.x||+1) * Math.max(Math.abs(p.x), 0.8) + 0.1;
       // 跨链接/额外父节点：与其他节点保持稍大斥力间距，让跨层联系更清晰
-      if ((n.crossLinks && n.crossLinks.trim()) || (n.extraParents && n.extraParents.trim())) p.multiplyScalar(1.07);
+      if ((n.crossLinks && n.crossLinks.trim()) || (n.extraParents && n.extraParents.trim())) p.multiplyScalar(1.12);
       positions[n.id] = p;
     });
   }
@@ -896,7 +896,7 @@ function rebuildScene() {
       siblings.forEach((n, i) => {
         const rp = relPts[i].clone();
         // 跨链接/额外父节点：斥力稍大 —— 沿锥方向外推 16%，与兄弟拉开距离，跨层连线更清晰
-        if ((n.crossLinks && n.crossLinks.trim()) || (n.extraParents && n.extraParents.trim())) rp.multiplyScalar(1.16);
+        if ((n.crossLinks && n.crossLinks.trim()) || (n.extraParents && n.extraParents.trim())) rp.multiplyScalar(1.3);
         // side 轻推（不改变距离父的半径，仅在正交父方向上偏移）
         if (n.side === 'L') rp.addScaledVector(sideAxis, -0.45);
         if (n.side === 'R') rp.addScaledVector(sideAxis, +0.45);
