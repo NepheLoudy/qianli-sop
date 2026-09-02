@@ -919,6 +919,8 @@ function rebuildScene() {
       const p = pts[i].clone();
       if (n.side === 'L') p.x = Math.sign(p.x||-1) * Math.max(Math.abs(p.x), 0.8) - 0.1;
       if (n.side === 'R') p.x = Math.sign(p.x||+1) * Math.max(Math.abs(p.x), 0.8) + 0.1;
+      // 跨链接/额外父节点：与其他节点保持稍大斥力间距，让跨层联系更清晰
+      if ((n.crossLinks && n.crossLinks.trim()) || (n.extraParents && n.extraParents.trim())) p.multiplyScalar(1.07);
       positions[n.id] = p;
     });
   }
@@ -950,6 +952,8 @@ function rebuildScene() {
       const upAxis   = new THREE.Vector3().crossVectors(parentDir, sideAxis).normalize();
       siblings.forEach((n, i) => {
         const rp = relPts[i].clone();
+        // 跨链接/额外父节点：斥力稍大 —— 沿锥方向外推 16%，与兄弟拉开距离，跨层连线更清晰
+        if ((n.crossLinks && n.crossLinks.trim()) || (n.extraParents && n.extraParents.trim())) rp.multiplyScalar(1.16);
         // side 轻推（不改变距离父的半径，仅在正交父方向上偏移）
         if (n.side === 'L') rp.addScaledVector(sideAxis, -0.45);
         if (n.side === 'R') rp.addScaledVector(sideAxis, +0.45);
@@ -1987,16 +1991,12 @@ function animate() {
     nAttr.needsUpdate = true;
     if (hAttr) hAttr.needsUpdate = true;
   }
-  // 连线透明度
+  // 连线透明度：聚焦不高亮线条，始终维持聚焦前的原色原透明度
   if (linkMatNormal) {
-    if (ft > 1e-6 && focusRelatedSet) {
-      linkMatNormal.opacity = 0.08; // 无关整体淡
-    } else {
-      linkMatNormal.opacity = hovered ? 0.1 : 0.55;
-    }
+    linkMatNormal.opacity = hovered ? 0.1 : 0.55;
   }
   if (linkMatHL) {
-    linkMatHL.opacity = (hovered || (focused && ft > 0.4)) ? 0.95 : 0;
+    linkMatHL.opacity = hovered ? 0.95 : 0;
   }
 
   controls.update();
