@@ -721,6 +721,45 @@ function makeLabelTexture(text, color='#fff') {
   const tex = new THREE.CanvasTexture(cv);
   return { tex, w: cv.width, h: cv.height };
 }
+// 负责人公示面板：常驻渲染在节点右下角（场景对象，跟随缩放/旋转）
+function makePersonInfoSprite(n){
+  const raw = String((n && n.link) || '').trim();
+  const empty = !raw;
+  const text = empty ? '（暂无公示）' : raw;
+  const cv = document.createElement('canvas');
+  cv.width = 560;
+  const ctx = cv.getContext('2d');
+  const fontSize = 26, lineH = 34, padX = 22, padY = 16, maxW = cv.width - padX * 2;
+  ctx.font = (empty ? 'italic ' : '') + fontSize + 'px "Microsoft YaHei","PingFang SC",sans-serif';
+  // 折行
+  const lines = [];
+  let cur = '';
+  for (const ch of text) {
+    if (ctx.measureText(cur + ch).width > maxW) { if (!cur) { cur = ch; } lines.push(cur); cur = cur === ch ? '' : ch; if (lines.length >= 8) break; }
+    else cur += ch;
+  }
+  if (cur && lines.length < 8) lines.push(cur);
+  if (lines.length >= 8 && (text.length > lines.join('').length)) lines[7] = lines[7].slice(0, -1) + '…';
+  cv.height = Math.ceil(lines.length * lineH + padY * 2);
+  ctx.font = (empty ? 'italic ' : '') + fontSize + 'px "Microsoft YaHei","PingFang SC",sans-serif';
+  // 圆角底
+  const r = 14;
+  ctx.beginPath();
+  ctx.moveTo(r, 0); ctx.arcTo(cv.width, 0, cv.width, cv.height, r); ctx.arcTo(cv.width, cv.height, 0, cv.height, r);
+  ctx.arcTo(0, cv.height, 0, 0, r); ctx.arcTo(0, 0, cv.width, 0, r); ctx.closePath();
+  ctx.fillStyle = 'rgba(9,15,32,0.88)'; ctx.fill();
+  ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(122,162,255,0.55)'; ctx.stroke();
+  ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+  ctx.fillStyle = empty ? '#8ea0c0' : '#dbe7ff';
+  lines.forEach((ln, i) => ctx.fillText(ln, padX, padY + lineH * i + lineH / 2));
+  const tex = new THREE.CanvasTexture(cv);
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false });
+  const sp = new THREE.Sprite(mat);
+  const H = Math.min(1.5, Math.max(0.24, 0.13 * lines.length + 0.08));
+  sp.scale.set(H * (cv.width / cv.height), H, 1);
+  sp.renderOrder = 3;
+  return sp;
+}
 function makeGlowMat(color, size=2, opacity=0.4) {
   const cv = document.createElement('canvas'); cv.width = cv.height = 256;
   const ctx = cv.getContext('2d');
@@ -878,6 +917,13 @@ function clearObjects() {
     nodesGroup.remove(c);
     c.traverse?.(o => { if (o.material) { o.material.map?.dispose?.(); o.material.dispose?.(); } });
   }
+  nodeMeshes.forEach(m => {
+    if (m.infoPanel) {
+      if (m.infoPanel.parent) m.infoPanel.parent.remove(m.infoPanel);
+      if (m.infoPanel.material.map) m.infoPanel.material.map.dispose();
+      m.infoPanel.material.dispose();
+    }
+  });
   nodeMeshes.length = 0;
   linkInfo = [];
   while (shellsGroup && shellsGroup.children.length) {
@@ -1297,6 +1343,12 @@ function rebuildScene() {
       floatPhase: Math.random()*Math.PI*2, baseScale: sz.sprite,
       linkIdxPairs: []
     });
+    if (n.style === 'person' && scene) {
+      // 公示面板挂 scene（不随 worldGroup 自转），每帧按相机右下方向偏移跟随
+      const panel = makePersonInfoSprite(n);
+      scene.add(panel);
+      nodeMeshes[nodeMeshes.length - 1].infoPanel = panel;
+    }
   });
 
   // 回填 linkIdxPairs + sMesh/tMesh 引用（animate 每帧更新连线端点用）
@@ -1503,7 +1555,7 @@ function onPointerMove(ev) {
   }
   updatePointer(ev);
   raycaster.setFromCamera(pointer, camera);
-  const hits = raycaster.intersectObjects(nodeMeshes.map(m=>m.ball), false);
+  const hits = raycaster.intersectObjects(nodeMeshes.filter(m => !m.__hidden).map(m=>m.ball), false);
   let nh = null;
   if (hits.length) {
     const b = hits[0].object;
@@ -1619,7 +1671,7 @@ function _dispatchClickInner(ev) {
   // ===== 先判断命中 =====
   updatePointer(ev);
   raycaster.setFromCamera(pointer, camera);
-  const hits = raycaster.intersectObjects(nodeMeshes.map(m=>m.ball), false);
+  const hits = raycaster.intersectObjects(nodeMeshes.filter(m => !m.__hidden).map(m=>m.ball), false);
   let nh = null;
   if (hits.length) {
     const b = hits[0].object;
@@ -2221,6 +2273,30 @@ function animate() {
     if (m.label) m.label.material.opacity = labelGoal;
     if (m.linkIcon) m.linkIcon.material.opacity = Math.max(m.lit === false ? 0.45 : 0.95, opacityGoal);
 
+    // 负责人节点：默认任何视角隐藏，聚焦其父节点时才显示；公示面板常驻右下角
+    if (m.raw.style === 'person') {
+      const fp = focused && (focused.raw.id === m.raw.parentId || parseExtraParents(m.raw).indexOf(focused.raw.id) >= 0);
+      m.__hidden = !fp;
+      if (!fp) {
+        m.ball.material.opacity = 0;
+        if (m.label) m.label.material.opacity = 0;
+      }
+      if (m.infoPanel) {
+        m.infoPanel.material.opacity = fp ? 0.92 : 0;
+        if (fp) {
+          scene.updateMatrixWorld();
+          const wp = m.ball.getWorldPosition(new THREE.Vector3());
+          const camRight = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0).normalize();
+          const camUp = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1).normalize();
+          const halfW = m.infoPanel.scale.x / 2, halfH = m.infoPanel.scale.y / 2;
+          const rad = m.baseScale * 0.5 + 0.1;
+          m.infoPanel.position.copy(wp).addScaledVector(camRight, rad + halfW).addScaledVector(camUp, -(rad + halfH));
+        }
+      }
+    } else {
+      m.__hidden = false;
+    }
+
     // 非悬停时周期性呼吸缩放
     if (hovered !== m && (!focused || focused !== m)) {
       if (i % 3 !== 1) continue;
@@ -2240,6 +2316,11 @@ function animate() {
       const sm = li.sMesh, tm = li.tMesh;
       if (!sm || !tm) continue;
       const bi = i * 6;
+      if (sm.__hidden || tm.__hidden) {
+        nArr[bi]=0;nArr[bi+1]=0;nArr[bi+2]=0;nArr[bi+3]=0;nArr[bi+4]=0;nArr[bi+5]=0;
+        if (hArr) { hArr[bi]=0;hArr[bi+1]=0;hArr[bi+2]=0;hArr[bi+3]=0;hArr[bi+4]=0;hArr[bi+5]=0; }
+        continue;
+      }
       // 普通连线：始终跟随节点当前位置
       nArr[bi+0] = sm.pos.x; nArr[bi+1] = sm.pos.y; nArr[bi+2] = sm.pos.z;
       nArr[bi+3] = tm.pos.x; nArr[bi+4] = tm.pos.y; nArr[bi+5] = tm.pos.z;
