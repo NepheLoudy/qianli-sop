@@ -42,9 +42,15 @@ Write-Host "  SOP Planet Dev Helper - started" -ForegroundColor Cyan
 Write-Host "  Listen : $Prefix" -ForegroundColor Cyan
 Write-Host "  Target : $TargetHtml" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "  Edit page (use THIS url, not file://): $Prefixcurrent-html" -ForegroundColor Yellow
 Write-Host "  Tip: Click 'Save and Reload' on the page to write back to disk"
 Write-Host "  Stop: Close this window or press Ctrl+C"
 Write-Host ""
+
+# Auto-open the editor page. Pages opened via file:// cannot reach the helper
+# (browser blocks cross-origin reads), which shows the yellow "helper not
+# started" badge - so always land the user on the same-origin url.
+try { Start-Process "$Prefixcurrent-html" } catch { Write-Host "[WARN] Could not open browser: $_" -ForegroundColor Yellow }
 
 function ReadBody($ctx) {
     $sr = New-Object System.IO.StreamReader($ctx.Request.InputStream, [System.Text.Encoding]::UTF8)
