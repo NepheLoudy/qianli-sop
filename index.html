@@ -1006,6 +1006,9 @@ function coneGuard(map, byId, fixedIds, passes){
         if (a > coneHalf) coneHalf = a;
       });
       coneHalf += MARGIN;
+      // 几何有效性：子节点近乎环绕分布时"最外侧母线锥"半角会退化到 >85°，
+      // 此时扇没有明确分叉方向、锥判定失去领地意义，跳过该顶点
+      if (coneHalf > 85 * Math.PI / 180) return;
       const avgD = sumD / cnt;
       ids.forEach(function(x){
         const xRaw = byId[x]; if (!xRaw) return;
@@ -1017,7 +1020,7 @@ function coneGuard(map, byId, fixedIds, passes){
         const dx = vx.length();
         if (dx < 1e-4) return;
         // 距离数值判断：径向与子环带相当（放宽窗口）
-        if (dx < avgD * 0.45 || dx > avgD * 2.2) return;
+        if (dx < avgD * 0.45 || dx > avgD * 1.8) return;
         // 角度判断：相对主轴落在锥内
         const cosT = vx.dot(axis) / dx;
         const theta = Math.acos(Math.max(-1, Math.min(1, cosT)));
