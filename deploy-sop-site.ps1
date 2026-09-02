@@ -79,6 +79,12 @@ Write-Host "    index.html generated (stripped $($before - $after) bytes)" -Fore
 Write-Host "==> git add (never include 3 misc html files: qianli_sop_network/rm2026_timeline/123)" -ForegroundColor Cyan
 $ExcludeMisc = @('qianli_sop_network.html','rm2026_timeline.html','123.html')
 
+# PS5 wraps native stderr (git's CRLF warnings etc.) as ErrorRecords; under
+# EAP=Stop those would terminate the script mid-deploy. Relax EAP around every
+# git call, then restore - real git failures are still caught via $LASTEXITCODE.
+$prevEAP = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+
 # First, stage modified + new files, then UNSTAGE any of the 3 misc names
 & git add -A 2>&1 | Out-Null
 foreach ($name in $ExcludeMisc) {
@@ -89,6 +95,8 @@ foreach ($name in $ExcludeMisc) {
 
 # Count staged non-zero (safety check below)
 $staged = @(& git --no-pager diff --cached --name-only 2>&1)
+$porcelain = (& git status --porcelain 2>&1) -join "`n"
+$ErrorActionPreference = $prevEAP
 $stagedCount = 0
 foreach ($s in $staged) { if (-not [string]::IsNullOrWhiteSpace($s)) { $stagedCount++ } }
 Write-Host "    staged files: $stagedCount" -ForegroundColor DarkGray
@@ -98,37 +106,69 @@ if ($stagedCount -gt 0) { $staged | ForEach-Object { if (-not [string]::IsNullOr
 # 3) Commit (skip gracefully when nothing to commit - no error)
 ########################################
 Write-Host "==> git status:" -ForegroundColor Cyan
-& git --no-pager status --short | ForEach-Object { Write-Host "    $_" }
+$prevEAPS = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+& git --no-pager status --short 2>&1 | ForEach-Object {
+    if ($_ -is [System.Management.Automation.ErrorRecord]) { $_.Exception.Message } else { "$_" }
+} | ForEach-Object { Write-Host "    $_" }
+$ErrorActionPreference = $prevEAPS
 
 if ($stagedCount -eq 0) {
-    Write-Host "[WARN] Nothing staged, skipping commit & push." -ForegroundColor Yellow
-    Write-Host "       (Probably nothing changed from last deploy, or index.html is byte-identical.)"
-    Write-Host ""
-    Write-Host "==> No-op done. (nothing new to deploy)" -ForegroundColor Green
-    exit 0
+    # Nothing new to commit, but a previous run may have committed and then failed
+    # to push (e.g. network). In that case still push, otherwise the commit would
+    # sit locally forever and re-running this script would no-op without pushing.
+    $prevEAP2 = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    $unpushed = (& git --no-pager rev-list --count origin/main..main 2>&1 | Out-String).Trim()
+    $ErrorActionPreference = $prevEAP2
+    if ("$unpushed" -eq '0') {
+        Write-Host "[WARN] Nothing staged, skipping commit & push." -ForegroundColor Yellow
+        Write-Host "       (Probably nothing changed from last deploy, or index.html is byte-identical.)"
+        Write-Host ""
+        Write-Host "==> No-op done. (nothing new to deploy)" -ForegroundColor Green
+        exit 0
+    }
+    Write-Host "[INFO] Nothing new staged, but $unpushed unpushed commit(s) found - pushing them now." -ForegroundColor Cyan
 }
 
 $ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 $msg = "deploy: update site at $ts"
 Write-Host "==> git commit -m '$msg'" -ForegroundColor Cyan
-& git commit -m $msg 2>&1 | ForEach-Object { Write-Host "    $_" }
-if ($LASTEXITCODE -ne 0) {
+$prevEAP3 = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+$commitOut = @(& git commit -m $msg 2>&1 | ForEach-Object {
+    # Normalize: if this is an ErrorRecord (PS5 wrapper), extract the underlying message.
+    if ($_ -is [System.Management.Automation.ErrorRecord]) { $_.Exception.Message } else { "$_" }
+})
+$commitCode = $LASTEXITCODE
+$ErrorActionPreference = $prevEAP3
+$commitOut | ForEach-Object { if (-not [string]::IsNullOrWhiteSpace($_)) { Write-Host "    $_" } }
+if ($commitCode -ne 0) {
     # Git exit 1 when nothing to commit even if we checked above; treat as soft no-op
-    $out = (& git status --porcelain 2>&1) -join "`n"
-    if ($out -match '^\s*$') {
+    if ($porcelain -match '^\s*$') {
         Write-Host "[WARN] Nothing changed after all - nothing to commit." -ForegroundColor Yellow
         exit 0
     }
-    Write-Host "[ERR] git commit failed (exit=$LASTEXITCODE)" -ForegroundColor Red
-    exit $LASTEXITCODE
+    Write-Host "[ERR] git commit failed (exit=$commitCode)" -ForegroundColor Red
+    exit $commitCode
 }
 
 ########################################
 # 4) Push origin main (categorized actionable error messages)
 ########################################
 Write-Host "==> git push origin main ..." -ForegroundColor Cyan
-$pushOut = (& git push origin main 2>&1)
-$pushOut | ForEach-Object { Write-Host "    $_" }
+# NOTE: git writes informational lines ("To <url>" and "X..Y  main -> main") to stderr.
+#       In Windows PowerShell 5 stderr output is wrapped as ErrorRecords and
+#       causes red "NativeCommandError" noise even when push actually succeeds.
+#       We temporarily suppress this cosmetic noise, keep real exit code check.
+$prevEAP = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+$pushOut = @(& git push origin main 2>&1 | ForEach-Object {
+    # Normalize: if this is an ErrorRecord (PS5 wraper), extract the underlying message.
+    if ($_ -is [System.Management.Automation.ErrorRecord]) { $_.Exception.Message } else { "$_" }
+})
+$ErrorActionPreference = $prevEAP
+$pushOut | ForEach-Object { if (-not [string]::IsNullOrWhiteSpace($_)) { Write-Host "    $_" } }
 if ($LASTEXITCODE -ne 0) {
     $joined = ($pushOut -join "`n")
     Write-Host ""
