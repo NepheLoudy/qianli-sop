@@ -1312,6 +1312,12 @@ function rebuildScene() {
     nodeMeshes.forEach(m => { m.lit = lit.has(m.raw.id); });
   })();
 
+  // ===== 默认视图 = 聚焦 root：页面加载与每次编辑重建后，未聚焦则静默进入聚焦root =====
+  if (!focused) {
+    const rootMesh = nodeMeshes.find(m => m.raw.id === 'root');
+    if (rootMesh) applyFocus(rootMesh, { silent: true });
+  }
+
   // ============ 重新加同心球层：后半球壳 + 近端淡出 ============
   (function addShells(){
     if (!shellsGroup) return;
@@ -1962,8 +1968,9 @@ function calcFocusTargets(centerMesh){
 // 平滑过渡（easeInOutCubic）
 function easeInOut(t){ return t<0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2; }
 // 进入聚焦
-function applyFocus(centerMesh){
+function applyFocus(centerMesh, opts){
   if (!centerMesh) return;
+  const silent = opts && opts.silent;
   // 聚焦 root（千里基本工作SOP）= 查看全貌：等同退出聚焦，保持默认全景布局
   if (centerMesh.raw.id === 'root') {
     if (focused) clearFocus();
@@ -1983,8 +1990,8 @@ function applyFocus(centerMesh){
   focusTargets = calcFocusTargets(centerMesh);
   focusRelatedSet = getRelatedIds(centerMesh.raw);
   focusDir = 1;
-  highlightRowInTable(centerMesh.raw.id);
-  showToast('聚焦：' + centerMesh.raw.text + '（再次点击其他节点平滑切换，点击空白退出）');
+  if (!silent) highlightRowInTable(centerMesh.raw.id);
+  if (!silent) showToast('聚焦：' + centerMesh.raw.text + '（再次点击其他节点平滑切换，点击空白退出）');
 }
 // 退出聚焦
 function clearFocus(){
