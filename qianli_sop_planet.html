@@ -452,8 +452,8 @@
         <li>滚轮：缩放远近</li>
         <li>右键拖拽：平移</li>
         <li>悬停：高亮+停转</li>
-        <li>单击：聚焦节点</li>
-        <li>双击🔗球：跳转文档</li>
+        <li>单击：聚焦 · 再单击：打开</li>
+        <li>双击🔗球/👤球：不聚焦直接打开</li>
         <li>点空白：退出聚焦</li>
       </ul>
     </div>
@@ -1332,9 +1332,9 @@ function applyHover(nh) {
   const hasLink = nh.raw.link && nh.raw.link.trim();
   const isPerson = nh.raw.style === 'person';
   const hoverBody = isPerson
-    ? `<div class="tt-link">👤 负责人公示${hasLink ? '' : '（暂未填写文本）'}</div><div style="font-size:10px;color:#34d399;margin-top:3px;">✓ 单击聚焦，双击查看公示文本</div>`
+    ? `<div class="tt-link">👤 负责人公示${hasLink ? '' : '（暂未填写文本）'}</div><div style="font-size:10px;color:#34d399;margin-top:3px;">✓ 单击聚焦，再单击打开 · 双击直接打开</div>`
     : (hasLink
-      ? `<div class="tt-link">🔗 ${escapeHtml(nh.raw.link)}</div><div style="font-size:10px;color:#34d399;margin-top:3px;">✓ 单击聚焦，双击跳转</div>`
+      ? `<div class="tt-link">🔗 ${escapeHtml(nh.raw.link)}</div><div style="font-size:10px;color:#34d399;margin-top:3px;">✓ 单击聚焦，再单击跳转 · 双击直接跳转</div>`
       : `<div class="tt-link" style="color:#94a3b8;">○ 暂未设置链接（编辑面板可补充）</div><div style="font-size:10px;color:#60a5fa;margin-top:3px;">单击节点聚焦</div>`);
   tt.innerHTML = `
     <div class="tt-title">${escapeHtml(nh.raw.text)}</div>
@@ -1376,17 +1376,9 @@ function _dispatchClickInner(ev) {
 
   // 情况 2：点中节点 —— 做双击 / 单击判定
   if (_clkPendingMesh === nh && _clkPendingTimer) {
-    // 第二次点击（间隔 < 250ms）→ 判定为双击：负责人节点弹公示文本，其余跳转链接
+    // 第二次点击（间隔 < 250ms）→ 判定为双击：不聚焦直接打开（负责人弹公示文本 / 跳转链接）
     clearPendingClick();
-    if (nh.raw.style === 'person') { showInfoPopup(nh.raw); return; }
-    const href = nh.raw.link && nh.raw.link.trim();
-    if (href) {
-      window.open(href, '_blank', 'noopener,noreferrer');
-    } else {
-      // 无链接但双击：仍然当作聚焦切换
-      if (focused === nh) clearFocus();
-      else applyFocus(nh);
-    }
+    openNode(nh);
     return;
   }
 
@@ -1399,8 +1391,8 @@ function _dispatchClickInner(ev) {
     _clkPendingMesh = null;
     if (!target) return;
     if (focused === target) {
-      // 已经在聚焦这个节点 → 取消聚焦
-      clearFocus();
+      // 已聚焦节点再次单击 → 打开（负责人弹公示文本 / 跳转链接）；无内容才取消聚焦
+      if (!openNode(target)) clearFocus();
     } else {
       applyFocus(target);
     }
@@ -1429,6 +1421,14 @@ function showInfoPopup(n){
   const onKey = (e) => { if (e.key === 'Escape') { ov.remove(); document.removeEventListener('keydown', onKey); } };
   document.addEventListener('keydown', onKey);
   document.body.appendChild(ov);
+}
+// 统一"打开"逻辑：负责人=弹出公示文本；普通节点=跳转链接；无内容返回 false
+function openNode(nh){
+  if (!nh) return false;
+  if (nh.raw.style === 'person') { showInfoPopup(nh.raw); return true; }
+  const href = nh.raw.link && nh.raw.link.trim();
+  if (href) { window.open(href, '_blank', 'noopener,noreferrer'); return true; }
+  return false;
 }
 
 /* ============ 聚焦（中心模式）相关 ============ */
