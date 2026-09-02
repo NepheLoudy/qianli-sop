@@ -889,12 +889,23 @@ function clearObjects() {
 
 // ===== 斥力松弛：把距离小于"个人空间之和"的节点对沿连线推开 =====
 // 个人空间：跨链接/额外父节点更大（延续"跨联系节点斥力稍大"的设计）
+// 节点所属 L1 分支（沿父链上溯到 root 的直接子节点）
+function branchIdOf(id, byId){
+  let cur = byId[id];
+  const guard = new Set();
+  while (cur && cur.parentId && byId[cur.parentId] && !guard.has(cur.id)) {
+    guard.add(cur.id);
+    if (cur.parentId === 'root') return cur.id;
+    cur = byId[cur.parentId];
+  }
+  return cur ? cur.id : id;
+}
 function nodeSpaceOf(raw){
   if (!raw) return 0.6;
   if ((raw.crossLinks && raw.crossLinks.trim()) || (raw.extraParents && raw.extraParents.trim())) return 0.95;
   return 0.6;
 }
-function relaxOverlaps(map, iterations, fixedIds, spaceMap){
+function relaxOverlaps(map, iterations, fixedIds, spaceMap, pairExtra){
   const ids = [];
   map.forEach((v, k) => ids.push(k));
   const fixed = fixedIds || new Set();
@@ -905,7 +916,8 @@ function relaxOverlaps(map, iterations, fixedIds, spaceMap){
         const ia = ids[a], ib = ids[b];
         const pa = map.get(ia), pb = map.get(ib);
         if (!pa || !pb) continue;
-        const minD = sp(ia) + sp(ib);
+        // 跨分支节点对要求更大最小间距：防止节点钻进隔壁分支的子树扇区
+        const minD = sp(ia) + sp(ib) + (pairExtra ? (pairExtra(ia, ib) || 0) : 0);
         const d = pa.distanceTo(pb);
         if (d >= minD || d < 1e-4) continue;
         const dir = pb.clone().sub(pa).normalize();
@@ -1001,9 +1013,13 @@ function rebuildScene() {
   (function(){
     const m = new Map();
     for (const id in positions) m.set(id, positions[id]);
-    const space = {};
-    for (const id in positions) space[id] = nodeSpaceOf(byId[id]);
-    relaxOverlaps(m, 6, new Set(['root']), space);
+    const space = {}, branchOf = {};
+    for (const id in positions) {
+      space[id] = nodeSpaceOf(byId[id]);
+      branchOf[id] = branchIdOf(id, byId);
+    }
+    relaxOverlaps(m, 8, new Set(['root']), space,
+      (a, b) => (branchOf[a] !== branchOf[b] ? 0.9 : 0));
   })();
 
   document.getElementById('hudStats').innerHTML =
@@ -1752,9 +1768,13 @@ function calcFocusTargets(centerMesh){
 
   // ===== 斥力松弛：聚焦布局同样消解重叠；跨链接节点个人空间更大（延续基础态效果）=====
   (function(){
-    const space = {};
-    g_nodes.forEach(n => { space[n.id] = nodeSpaceOf(n); });
-    relaxOverlaps(targets, 6, new Set([cid]), space);
+    const space = {}, branchOf = {};
+    g_nodes.forEach(n => {
+      space[n.id] = nodeSpaceOf(n);
+      branchOf[n.id] = branchIdOf(n.id, byId);
+    });
+    relaxOverlaps(targets, 8, new Set([cid]), space,
+      (a, b) => (branchOf[a] !== branchOf[b] ? 0.9 : 0));
   })();
 
   return targets;
