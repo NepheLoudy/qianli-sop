@@ -1964,6 +1964,12 @@ function easeInOut(t){ return t<0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2; }
 // 进入聚焦
 function applyFocus(centerMesh){
   if (!centerMesh) return;
+  // 聚焦 root（千里基本工作SOP）= 查看全貌：等同退出聚焦，保持默认全景布局
+  if (centerMesh.raw.id === 'root') {
+    if (focused) clearFocus();
+    else showToast('千里基本工作SOP：全景模式（默认状态）');
+    return;
+  }
   // ---------- A → B 平滑切换：拍当前每个节点实际 pos 快照 ----------
   if (focused && focused !== centerMesh) {
     focusSnapshot = new Map();
