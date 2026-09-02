@@ -901,9 +901,9 @@ function branchIdOf(id, byId){
   return cur ? cur.id : id;
 }
 function nodeSpaceOf(raw){
-  if (!raw) return 0.6;
-  if ((raw.crossLinks && raw.crossLinks.trim()) || (raw.extraParents && raw.extraParents.trim())) return 0.95;
-  return 0.6;
+  if (!raw) return 0.8;
+  if ((raw.crossLinks && raw.crossLinks.trim()) || (raw.extraParents && raw.extraParents.trim())) return 1.05;
+  return 0.8;
 }
 function relaxOverlaps(map, iterations, fixedIds, spaceMap, pairExtra){
   const ids = [];
@@ -1018,7 +1018,7 @@ function rebuildScene() {
       space[id] = nodeSpaceOf(byId[id]);
       branchOf[id] = branchIdOf(id, byId);
     }
-    relaxOverlaps(m, 8, new Set(['root']), space,
+    relaxOverlaps(m, 10, new Set(['root']), space,
       (a, b) => (branchOf[a] !== branchOf[b] ? 0.9 : 0));
   })();
 
@@ -1773,7 +1773,7 @@ function calcFocusTargets(centerMesh){
       space[n.id] = nodeSpaceOf(n);
       branchOf[n.id] = branchIdOf(n.id, byId);
     });
-    relaxOverlaps(targets, 8, new Set([cid]), space,
+    relaxOverlaps(targets, 10, new Set([cid]), space,
       (a, b) => (branchOf[a] !== branchOf[b] ? 0.9 : 0));
   })();
 
@@ -2059,12 +2059,16 @@ function animate() {
     nAttr.needsUpdate = true;
     if (hAttr) hAttr.needsUpdate = true;
   }
-  // 连线透明度：聚焦不高亮线条，始终维持聚焦前的原色原透明度
+  // 连线透明度：聚焦=相关线段金色高亮、无关线段原色淡（每帧同步里已做选择性置零）
   if (linkMatNormal) {
-    linkMatNormal.opacity = hovered ? 0.1 : 0.55;
+    if (ft > 1e-6 && focusRelatedSet) {
+      linkMatNormal.opacity = 0.08; // 无关整体淡
+    } else {
+      linkMatNormal.opacity = hovered ? 0.1 : 0.55;
+    }
   }
   if (linkMatHL) {
-    linkMatHL.opacity = hovered ? 0.95 : 0;
+    linkMatHL.opacity = (hovered || (focused && ft > 0.4)) ? 0.95 : 0;
   }
 
   controls.update();
