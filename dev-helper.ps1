@@ -51,6 +51,11 @@ function ReadBody($ctx) {
     try { return $sr.ReadToEnd() } finally { $sr.Dispose() }
 }
 
+# UTF-8 WITHOUT BOM: the source html on disk has no BOM; emitting one (the plain
+# [System.Text.Encoding]::UTF8 default) would add a spurious 1-line diff on the
+# first browser save.
+$Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+
 function WriteResp($ctx, $code, $text, $ctype="text/plain; charset=utf-8") {
     $buf = [System.Text.Encoding]::UTF8.GetBytes($text)
     $r = $ctx.Response
@@ -83,9 +88,9 @@ while ($Listener.IsListening) {
                 if ($ctx.Request.HttpMethod -ne "POST") { WriteResp $ctx 405 "Method Not Allowed"; continue }
                 $body = ReadBody $ctx
                 if ([string]::IsNullOrWhiteSpace($body)) { WriteResp $ctx 400 "Empty body"; continue }
-                [System.IO.File]::WriteAllText($TargetHtml, $body, [System.Text.Encoding]::UTF8)
-                WriteResp $ctx 200 "OK written $($body.Length) bytes"
-                Write-Host "  -> 200 overwritten on disk ($($body.Length) bytes)" -ForegroundColor Green
+                [System.IO.File]::WriteAllText($TargetHtml, $body, $Utf8NoBom)
+                WriteResp $ctx 200 "OK written $($body.Length) chars"
+                Write-Host "  -> 200 overwritten on disk ($($body.Length) chars)" -ForegroundColor Green
                 continue
             }
             default {
