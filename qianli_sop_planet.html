@@ -1911,8 +1911,8 @@ function animate() {
     if (ft > 1e-6) {
       const isRelated = focusRelatedSet && focusRelatedSet.has(id);
       if (isRelated) {
-        opacityGoal = Math.max(opacityGoal, 0.9);
-        labelGoal = Math.max(labelGoal, 0.9);
+        // 聚焦时保留科技树明暗底色：相关节点维持 lit/dim，不强行提亮
+        if (focused === m) { opacityGoal = 1; labelGoal = 1; } // 聚焦中心本体始终清晰
         if (focused && focused.raw.id === id) scaleBoost = 1.25 + 0.1 * Math.sin(t*2); // 中心点放大脉动
       } else {
         opacityGoal = 0.06; // 无关节点大幅淡化
