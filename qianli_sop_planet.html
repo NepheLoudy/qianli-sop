@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
+<html lang="zh-CN"><head>
 <meta charset="UTF-8">
 <title>千里基本工作SOP</title>
 <!-- ✅ 本地相对路径加载，完全兼容 file:// 双击打开，无跨域/ORB 问题 -->
@@ -386,7 +385,7 @@
   </div>
 
   <!-- 编辑面板 -->
-  <div class="edit-panel" id="editPanel">
+  <div class="edit-panel open" id="editPanel">
     <!-- ✅ 给 header 加 id，后续用 addEventListener 绑定 -->
     <div class="edit-panel-header" id="editPanelHeader">
       <h2>🛠 编辑面板（修改节点后自动重建星球）</h2>
@@ -397,7 +396,7 @@
         <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap;">
           <div>
             <button class="btn btn-green" id="btnSaveReload" style="background:linear-gradient(135deg,#22c55e,#16a34a);border:none;">💾 保存并刷新</button>
-            <span id="helperStatus" style="display:inline-block;padding:3px 8px;border-radius:10px;font-size:11px;margin-left:8px;"></span>
+            <span id="helperStatus" style="display: inline-block; padding: 3px 8px; border-radius: 10px; font-size: 11px; margin-left: 8px; background: rgba(251, 191, 36, 0.12); color: rgb(251, 191, 36); border: 1px solid rgba(251, 191, 36, 0.35);">🟡 本地助手未启动：保存将下载最新 HTML（手动覆盖）</span>
           </div>
           <div style="font-size:11px;color:#64748b;line-height:1.5;">
             先 <b>双击</b> 同目录 <span style="color:#7dd3fc;">启动本地开发助手.bat</span> → 再点此按钮即可 <span style="color:#4ade80;">自动写回磁盘并刷新页面</span><br>
@@ -434,7 +433,1207 @@
               <th class="col-act">操作</th>
             </tr>
           </thead>
-          <tbody id="treeTableBody"></tbody>
+          <tbody id="treeTableBody"><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-0">L0</span><br>
+        <input type="number" min="0" max="5" value="0" data-idx="0" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><input type="text" value="千里基本工作SOP" data-idx="0" data-key="text">
+        <div class="row-id" data-idx="0" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 root</div></td>
+      <td><input type="url" value="" data-idx="0" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="" data-idx="0" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="0" data-key="side">
+          <option value="L" selected="">L 左</option>
+          <option value="R">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="0" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="0" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="0" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#38bdf8" data-idx="0" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="0" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="0">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="0">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-1">L1</span><br>
+        <input type="number" min="0" max="5" value="1" data-idx="1" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><input type="text" value="重庆大学千里战队章程" data-idx="1" data-key="text">
+        <div class="row-id" data-idx="1" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 root_c_6260</div></td>
+      <td><input type="url" value="https://cquqianli.feishu.cn/wiki/KqQKw0vRGi7FlxkNA2scKECjnpd?from=from_copylink" data-idx="1" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="root" data-idx="1" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="1" data-key="side">
+          <option value="L" selected="">L 左</option>
+          <option value="R">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="1" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="1" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="1" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#38bdf8" data-idx="1" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="1" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="1">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="1">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-1">L1</span><br>
+        <input type="number" min="0" max="5" value="1" data-idx="2" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><input type="text" value="项目管理" data-idx="2" data-key="text">
+        <div class="row-id" data-idx="2" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l1-pm</div></td>
+      <td><input type="url" value="" data-idx="2" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="root" data-idx="2" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="2" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="2" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="2" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="2" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#a855f7" data-idx="2" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="2" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="2">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="2">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-2">L2</span><br>
+        <input type="number" min="0" max="5" value="2" data-idx="3" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span></span><input type="text" value="项目管理sop" data-idx="3" data-key="text">
+        <div class="row-id" data-idx="3" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l1-pm_c_9892</div></td>
+      <td><input type="url" value="https://cquqianli.feishu.cn/wiki/C16oweeixiJP9pkkWIRcL5MNnfk?from=from_copylink" data-idx="3" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l1-pm" data-idx="3" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="3" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="3" data-key="style"><option value="normal">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box" selected="">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="3" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="3" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#fbbf24" data-idx="3" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="3" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="3">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="3">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-1">L1</span><br>
+        <input type="number" min="0" max="5" value="1" data-idx="4" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><input type="text" value="设备使用规范" data-idx="4" data-key="text">
+        <div class="row-id" data-idx="4" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l1-eq</div></td>
+      <td><input type="url" value="" data-idx="4" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="root" data-idx="4" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="4" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="4" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="4" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="4" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#a855f7" data-idx="4" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="4" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="4">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="4">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-1">L1</span><br>
+        <input type="number" min="0" max="5" value="1" data-idx="5" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><input type="text" value="基础工作" data-idx="5" data-key="text">
+        <div class="row-id" data-idx="5" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l1-base</div></td>
+      <td><input type="url" value="" data-idx="5" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="root" data-idx="5" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="5" data-key="side">
+          <option value="L" selected="">L 左</option>
+          <option value="R">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="5" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="5" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="5" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#a855f7" data-idx="5" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="5" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="5">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="5">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-2">L2</span><br>
+        <input type="number" min="0" max="5" value="2" data-idx="6" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span></span><input type="text" value="项目完整生命流程" data-idx="6" data-key="text">
+        <div class="row-id" data-idx="6" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l2-pm-life</div></td>
+      <td><input type="url" value="" data-idx="6" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l1-pm" data-idx="6" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="6" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="6" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="6" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="6" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#ec4899" data-idx="6" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="6" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="6">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="6">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="7" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="硬件组通识" data-idx="7" data-key="text">
+        <div class="row-id" data-idx="7" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l2-pm-life_c_1185</div></td>
+      <td><input type="url" value="https://cquqianli.feishu.cn/wiki/YxU3wtxn1iE43FkNfQvcPi0hnuf" data-idx="7" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-pm-life" data-idx="7" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="7" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="7" data-key="style"><option value="normal">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box" selected="">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="7" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="7" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#fbbf24" data-idx="7" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="7" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="7">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="7">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="8" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="硬件组通识 (副本)" data-idx="8" data-key="text">
+        <div class="row-id" data-idx="8" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l2-pm-life_c_1185_copy_6460</div></td>
+      <td><input type="url" value="https://cquqianli.feishu.cn/wiki/YxU3wtxn1iE43FkNfQvcPi0hnuf" data-idx="8" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-pm-life" data-idx="8" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="8" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="8" data-key="style"><option value="normal">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box" selected="">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="8" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="8" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#fbbf24" data-idx="8" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="8" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="8">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="8">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-2">L2</span><br>
+        <input type="number" min="0" max="5" value="2" data-idx="9" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span></span><input type="text" value="千里后端" data-idx="9" data-key="text">
+        <div class="row-id" data-idx="9" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l2-pm-back</div></td>
+      <td><input type="url" value="" data-idx="9" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l1-pm" data-idx="9" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="9" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="9" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="9" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="9" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#ec4899" data-idx="9" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="9" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="9">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="9">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="10" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="基本工作流" data-idx="10" data-key="text">
+        <div class="row-id" data-idx="10" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-life-flow</div></td>
+      <td><input type="url" value="" data-idx="10" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-pm-life" data-idx="10" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="10" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="10" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="10" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="10" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="10" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="10" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="10">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="10">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="11" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="会议模板" data-idx="11" data-key="text">
+        <div class="row-id" data-idx="11" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-life-meet</div></td>
+      <td><input type="url" value="https://cquqianli.feishu.cn/wiki/YsN4wr4aJifkVNkw1RAcVoJ3nHf" data-idx="11" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-pm-life" data-idx="11" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="11" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="11" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="11" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="l1-base" data-idx="11" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="11" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="11" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="11">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="11">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="12" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="发加工规范" data-idx="12" data-key="text">
+        <div class="row-id" data-idx="12" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-life-fab</div></td>
+      <td><input type="url" value="" data-idx="12" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-pm-life" data-idx="12" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="12" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="12" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="12" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="12" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="12" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="12" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="12">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="12">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="13" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="BTM-ch1" data-idx="13" data-key="text">
+        <div class="row-id" data-idx="13" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 ref-btm</div></td>
+      <td><input type="url" value="" data-idx="13" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-pm-life" data-idx="13" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="13" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="13" data-key="style"><option value="normal">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box" selected="">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="13" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="13" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#fbbf24" data-idx="13" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="13" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="13">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="13">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="14" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="项目看板" data-idx="14" data-key="text">
+        <div class="row-id" data-idx="14" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-back-kanban</div></td>
+      <td><input type="url" value="https://cquqianli.feishu.cn/base/ZlVZbXDkRayUzSsFRiycznmZn5b?from=from_copylink" data-idx="14" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-pm-back" data-idx="14" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="14" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="14" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="14" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="14" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="14" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="14" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="14">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="14">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="15" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="千里论坛" data-idx="15" data-key="text">
+        <div class="row-id" data-idx="15" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-back-forum</div></td>
+      <td><input type="url" value="https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=730oba42-d484-4daf-80d7-d0b9981b774b" data-idx="15" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-pm-back" data-idx="15" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="15" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="15" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="15" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="15" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="15" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="15" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="15">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="15">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="16" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="工单系统" data-idx="16" data-key="text">
+        <div class="row-id" data-idx="16" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-back-forum_copy_9061</div></td>
+      <td><input type="url" value="" data-idx="16" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-pm-back" data-idx="16" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="16" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="16" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="16" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="16" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="16" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="16" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="16">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="16">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="17" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="值日系统" data-idx="17" data-key="text">
+        <div class="row-id" data-idx="17" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-back-forum_copy_9061_copy_1407</div></td>
+      <td><input type="url" value="" data-idx="17" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-pm-back" data-idx="17" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="17" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="17" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="17" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="l3-lab-duty" data-idx="17" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="17" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="17" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="17">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="17">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="18" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="机器人" data-idx="18" data-key="text">
+        <div class="row-id" data-idx="18" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-back-robot</div></td>
+      <td><input type="url" value="" data-idx="18" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-pm-back" data-idx="18" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="18" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="18" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="18" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="18" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="18" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="18" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="18">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="18">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="19" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="入库系统" data-idx="19" data-key="text">
+        <div class="row-id" data-idx="19" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-back-stock</div></td>
+      <td><input type="url" value="" data-idx="19" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-pm-back" data-idx="19" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="19" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="19" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="19" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="19" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="19" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="19" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="19">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="19">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="20" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="审批系统" data-idx="20" data-key="text">
+        <div class="row-id" data-idx="20" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-back-approve</div></td>
+      <td><input type="url" value="" data-idx="20" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-pm-back" data-idx="20" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="20" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="20" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="20" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="20" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="20" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="20" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="20">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="20">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-4">L4</span><br>
+        <input type="number" min="0" max="5" value="4" data-idx="21" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="财务审批" data-idx="21" data-key="text">
+        <div class="row-id" data-idx="21" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-back-approve_c_4602</div></td>
+      <td><input type="url" value="https://applink.feishu.cn/T99pm0niGzz1" data-idx="21" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l3-back-approve" data-idx="21" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="21" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="21" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="21" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="21" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#37ff00" data-idx="21" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="21" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="21">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="21">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-4">L5</span><br>
+        <input type="number" min="0" max="5" value="5" data-idx="22" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="财务工作通识" data-idx="22" data-key="text">
+        <div class="row-id" data-idx="22" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-back-approve_c_4602_c_9342</div></td>
+      <td><input type="url" value="https://cquqianli.feishu.cn/wiki/Tbt3wXiDui4tD1ke3i8cYUZCn4c" data-idx="22" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l3-back-approve_c_4602" data-idx="22" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="22" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="22" data-key="style"><option value="normal">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box" selected="">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="22" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="22" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#fbbf24" data-idx="22" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="22" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="22">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="22">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-4">L4</span><br>
+        <input type="number" min="0" max="5" value="4" data-idx="23" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="3D打印预约" data-idx="23" data-key="text">
+        <div class="row-id" data-idx="23" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-back-approve_c_9926</div></td>
+      <td><input type="url" value="https://applink.feishu.cn/T99pm183FQZ8" data-idx="23" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l3-back-approve" data-idx="23" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="23" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="23" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="23" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="23" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#37ff00" data-idx="23" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="23" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="23">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="23">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-4">L4</span><br>
+        <input type="number" min="0" max="5" value="4" data-idx="24" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="工单审批" data-idx="24" data-key="text">
+        <div class="row-id" data-idx="24" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-back-approve_c_2675</div></td>
+      <td><input type="url" value="https://applink.feishu.cn/T99plZ59QnT8" data-idx="24" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l3-back-approve" data-idx="24" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="24" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="24" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="24" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="l3-back-forum_copy_9061" data-idx="24" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#37ff00" data-idx="24" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="24" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="24">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="24">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-2">L2</span><br>
+        <input type="number" min="0" max="5" value="2" data-idx="25" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span></span><input type="text" value="基本加工工具培训流程" data-idx="25" data-key="text">
+        <div class="row-id" data-idx="25" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l2-eq-basic</div></td>
+      <td><input type="url" value="" data-idx="25" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l1-eq" data-idx="25" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="25" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="25" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="25" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="25" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#ec4899" data-idx="25" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="25" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="25">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="25">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-2">L2</span><br>
+        <input type="number" min="0" max="5" value="2" data-idx="26" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span></span><input type="text" value="特别设备/消耗品管理条例" data-idx="26" data-key="text">
+        <div class="row-id" data-idx="26" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l2-eq-special</div></td>
+      <td><input type="url" value="" data-idx="26" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l1-eq" data-idx="26" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="26" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="26" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="26" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="26" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#ec4899" data-idx="26" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="26" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="26">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="26">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="27" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="3D打印机" data-idx="27" data-key="text">
+        <div class="row-id" data-idx="27" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-basic-3d</div></td>
+      <td><input type="url" value="https://cquqianli.feishu.cn/wiki/V4hnw4PE2iisrOk1oR0cJdaLnog?from=from_copylink" data-idx="27" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-eq-basic" data-idx="27" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="27" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="27" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="27" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="l3-back-approve_c_9926" data-idx="27" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="27" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="27" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="27">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="27">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="28" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="车/钻床" data-idx="28" data-key="text">
+        <div class="row-id" data-idx="28" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-basic-lathe</div></td>
+      <td><input type="url" value="" data-idx="28" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-eq-basic" data-idx="28" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="28" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="28" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="28" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="28" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="28" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="28" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="28">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="28">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="29" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="雕铣机" data-idx="29" data-key="text">
+        <div class="row-id" data-idx="29" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-basic-cnc</div></td>
+      <td><input type="url" value="https://cquqianli.feishu.cn/wiki/JAZQw9ZD8ix88dkwcLDcvIHKnOc" data-idx="29" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-eq-basic" data-idx="29" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="29" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="29" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="29" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="29" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="29" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="29" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="29">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="29">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="30" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="CNC加工设备" data-idx="30" data-key="text">
+        <div class="row-id" data-idx="30" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-basic-cnc2</div></td>
+      <td><input type="url" value="https://cquqianli.feishu.cn/wiki/GcKVwnJBDi83OqkGqPYcZWsrnFb" data-idx="30" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-eq-basic" data-idx="30" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="30" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="30" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="30" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="30" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="30" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="30" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="30">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="30">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="31" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="手持电动工具" data-idx="31" data-key="text">
+        <div class="row-id" data-idx="31" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-basic-hand</div></td>
+      <td><input type="url" value="" data-idx="31" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-eq-basic" data-idx="31" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="31" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="31" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="31" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="31" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="31" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="31" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="31">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="31">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="32" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="圆锯" data-idx="32" data-key="text">
+        <div class="row-id" data-idx="32" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-basic-saw</div></td>
+      <td><input type="url" value="" data-idx="32" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-eq-basic" data-idx="32" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="32" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="32" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="32" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="32" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="32" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="32" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="32">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="32">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="33" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="-CF 3D打印材料" data-idx="33" data-key="text">
+        <div class="row-id" data-idx="33" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-sp-cf</div></td>
+      <td><input type="url" value="" data-idx="33" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-eq-special" data-idx="33" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="33" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="33" data-key="style"><option value="normal">普通球</option><option value="example" selected="">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="33" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="33" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#fbbf24" data-idx="33" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="33" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="33">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="33">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="34" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="基本加工工具使用资格认证" data-idx="34" data-key="text">
+        <div class="row-id" data-idx="34" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-sp-cert</div></td>
+      <td><input type="url" value="" data-idx="34" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-eq-special" data-idx="34" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="34" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="34" data-key="style"><option value="normal">普通球</option><option value="example" selected="">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="34" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="34" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#fbbf24" data-idx="34" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="34" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="34">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="34">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="35" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="冷却剂等危化品使用办法" data-idx="35" data-key="text">
+        <div class="row-id" data-idx="35" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-sp-cool</div></td>
+      <td><input type="url" value="" data-idx="35" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-eq-special" data-idx="35" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="35" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="35" data-key="style"><option value="normal">普通球</option><option value="example" selected="">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="35" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="35" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#fbbf24" data-idx="35" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="35" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="35">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="35">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="36" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="管理责任人公示" data-idx="36" data-key="text">
+        <div class="row-id" data-idx="36" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 ref-mgrboard</div></td>
+      <td><input type="text" value="负责人：张郭浩" data-idx="36" data-key="link" placeholder="公示文本：双击节点弹出（不跳转）"></td>
+      <td class="col-type"><input type="text" value="l2-eq-special" data-idx="36" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="36" data-key="side">
+          <option value="L">L 左</option>
+          <option value="R" selected="">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="36" data-key="style"><option value="normal">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person" selected="">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="36" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="36" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#23b3fb" data-idx="36" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="36" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="36">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="36">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-2">L2</span><br>
+        <input type="number" min="0" max="5" value="2" data-idx="37" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span></span><input type="text" value="实验室维护" data-idx="37" data-key="text">
+        <div class="row-id" data-idx="37" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l2-base-lab</div></td>
+      <td><input type="url" value="" data-idx="37" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l1-base" data-idx="37" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="37" data-key="side">
+          <option value="L" selected="">L 左</option>
+          <option value="R">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="37" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="37" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="37" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#ec4899" data-idx="37" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="37" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="37">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="37">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-2">L2</span><br>
+        <input type="number" min="0" max="5" value="2" data-idx="38" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span></span><input type="text" value="物品保管和归类" data-idx="38" data-key="text">
+        <div class="row-id" data-idx="38" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l2-base-store</div></td>
+      <td><input type="url" value="" data-idx="38" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l1-base" data-idx="38" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="38" data-key="side">
+          <option value="L" selected="">L 左</option>
+          <option value="R">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="38" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="38" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="38" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#ec4899" data-idx="38" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="38" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="38">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="38">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-2">L2</span><br>
+        <input type="number" min="0" max="5" value="2" data-idx="39" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span></span><input type="text" value="工位维护" data-idx="39" data-key="text">
+        <div class="row-id" data-idx="39" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l2-base-seat</div></td>
+      <td><input type="url" value="https://cquqianli.feishu.cn/wiki/EKvwwcBmmiuBuTkOP7icXY8gnTJ" data-idx="39" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l1-base" data-idx="39" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="39" data-key="side">
+          <option value="L" selected="">L 左</option>
+          <option value="R">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="39" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="39" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="39" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#ec4899" data-idx="39" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="39" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="39">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="39">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-2">L2</span><br>
+        <input type="number" min="0" max="5" value="2" data-idx="40" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span></span><input type="text" value="文档与知识库规范" data-idx="40" data-key="text">
+        <div class="row-id" data-idx="40" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l2-base-seat_copy_4881</div></td>
+      <td><input type="url" value="https://cquqianli.feishu.cn/wiki/Q8tpwej4JiLeGNkJv5mc3DLenmh" data-idx="40" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l1-base" data-idx="40" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="40" data-key="side">
+          <option value="L" selected="">L 左</option>
+          <option value="R">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="40" data-key="style"><option value="normal">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box" selected="">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="40" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="40" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#fbbf24" data-idx="40" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="40" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="40">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="40">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="41" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="值日制度" data-idx="41" data-key="text">
+        <div class="row-id" data-idx="41" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-lab-duty</div></td>
+      <td><input type="url" value="https://cquqianli.feishu.cn/wiki/Aap2wtnwXidvGckYTiFcFtcnnMF" data-idx="41" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-base-lab" data-idx="41" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="41" data-key="side">
+          <option value="L" selected="">L 左</option>
+          <option value="R">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="41" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="41" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="41" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="41" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="41" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="41">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="41">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="42" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="设备维护" data-idx="42" data-key="text">
+        <div class="row-id" data-idx="42" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-lab-maint</div></td>
+      <td><input type="url" value="" data-idx="42" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-base-lab" data-idx="42" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="42" data-key="side">
+          <option value="L" selected="">L 左</option>
+          <option value="R">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="42" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="42" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="42" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="42" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="42" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="42">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="42">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="43" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="螺丝柜" data-idx="43" data-key="text">
+        <div class="row-id" data-idx="43" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-store-screw</div></td>
+      <td><input type="url" value="" data-idx="43" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-base-store" data-idx="43" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="43" data-key="side">
+          <option value="L" selected="">L 左</option>
+          <option value="R">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="43" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="43" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="43" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="43" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="43" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="43">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="43">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="44" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="基本工具保管" data-idx="44" data-key="text">
+        <div class="row-id" data-idx="44" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-store-tool</div></td>
+      <td><input type="url" value="" data-idx="44" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-base-store" data-idx="44" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="44" data-key="side">
+          <option value="L" selected="">L 左</option>
+          <option value="R">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="44" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="44" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="44" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="44" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="44" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="44">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="44">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="45" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="电器" data-idx="45" data-key="text">
+        <div class="row-id" data-idx="45" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-store-elec</div></td>
+      <td><input type="url" value="" data-idx="45" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-base-store" data-idx="45" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="45" data-key="side">
+          <option value="L" selected="">L 左</option>
+          <option value="R">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="45" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="45" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="45" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="45" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="45" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="45">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="45">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="46" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="消耗品" data-idx="46" data-key="text">
+        <div class="row-id" data-idx="46" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 l3-store-mat</div></td>
+      <td><input type="url" value="" data-idx="46" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-base-store" data-idx="46" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="46" data-key="side">
+          <option value="L" selected="">L 左</option>
+          <option value="R">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="46" data-key="style"><option value="normal" selected="">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="46" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="46" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#34d399" data-idx="46" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="46" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="46">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="46">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="47" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="基于各组工具分发和管理办法制定" data-idx="47" data-key="text">
+        <div class="row-id" data-idx="47" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 ref-toolrule</div></td>
+      <td><input type="url" value="" data-idx="47" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-base-store" data-idx="47" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="47" data-key="side">
+          <option value="L" selected="">L 左</option>
+          <option value="R">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="47" data-key="style"><option value="normal">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box" selected="">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="47" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="47" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#fbbf24" data-idx="47" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="47" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="47">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="47">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="48" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="包括电机、线材等工具存放位置、取用、报废规范" data-idx="48" data-key="text">
+        <div class="row-id" data-idx="48" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 ref-elecrule</div></td>
+      <td><input type="url" value="" data-idx="48" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-base-store" data-idx="48" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="48" data-key="side">
+          <option value="L" selected="">L 左</option>
+          <option value="R">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="48" data-key="style"><option value="normal">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box" selected="">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="48" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="48" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#fbbf24" data-idx="48" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="48" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="48">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="48">删</button>
+      </td></tr><tr>
+      <td class="col-level" style="text-align:center;">
+        <span class="level-tag level-3">L3</span><br>
+        <input type="number" min="0" max="5" value="3" data-idx="49" data-key="level" data-type="num" style="width:40px;margin-top:3px;">
+      </td>
+      <td><span class="indent-bar"><span class="indent-unit"></span><span class="indent-unit"></span></span><input type="text" value="包括存储、采购、使用规范" data-idx="49" data-key="text">
+        <div class="row-id" data-idx="49" title="点击复制本节点ID（填父ID/跨链接时直接粘贴）" style="font-size:10px;color:#7aa2ff;cursor:pointer;margin-top:2px;user-select:none;">🆔 ref-matrule</div></td>
+      <td><input type="url" value="" data-idx="49" data-key="link" placeholder="https:// 飞书文档/看板链接"></td>
+      <td class="col-type"><input type="text" value="l2-base-store" data-idx="49" data-key="parentId" placeholder="父节点ID"></td>
+      <td class="col-type">
+        <select data-idx="49" data-key="side">
+          <option value="L" selected="">L 左</option>
+          <option value="R">R 右</option>
+          <option value="">-</option>
+        </select>
+      </td>
+      <td class="col-type"><select data-idx="49" data-key="style"><option value="normal">普通球</option><option value="example">示例(虚线圈)</option><option value="ref-box" selected="">引用框(方块)</option><option value="person">负责人(人形)</option></select></td>
+      <td><input type="text" value="" data-idx="49" data-key="crossLinks" placeholder="ID1,ID2"></td>
+      <td><input type="text" value="" data-idx="49" data-key="extraParents" placeholder="父ID1,父ID2"></td>
+      <td class="col-color"><input type="color" value="#fbbf24" data-idx="49" data-key="color" style="width:100%;height:24px;padding:2px;"></td>
+      <td class="col-act">
+        <button class="btn btn-green btn-xs" data-act="addchild" data-idx="49" title="在此节点下新建子节点">＋子</button>
+        <button class="btn btn-purple btn-xs" data-act="dup" data-idx="49">复</button>
+        <button class="btn btn-red btn-xs" data-act="del" data-idx="49">删</button>
+      </td></tr></tbody>
         </table>
       </div>
       <div class="toolbar" style="margin-top:8px;">
@@ -457,15 +1656,19 @@
         <li>点空白：退出聚焦</li>
       </ul>
     </div>
-    <div class="hud hud-stats" id="hudStats"></div>
-    <div id="nodeTooltip"></div>
-    <div id="loadingTip">⏳ 正在加载 Three.js 与构建星球…</div>
-    <canvas id="threeCanvas"></canvas>
+    <div class="hud hud-stats" id="hudStats">🌐 <b>50</b> 节点 · 🔗 <b>17</b> 可跳转 · 👤 <b>1</b> 负责人 · ➖ <b>49</b> 连线</div>
+    <div id="nodeTooltip" style="display: none; left: 1177px; top: 539px;">
+    <div class="tt-title">CNC加工设备</div>
+    <div style="color:#cbd5e1;">层级：<b style="color:#e0e7ff;">L3</b> &nbsp; 样式：<b style="color:#e0e7ff;">normal</b></div>
+    <div class="tt-link">🔗 https://cquqianli.feishu.cn/wiki/GcKVwnJBDi83OqkGqPYcZWsrnFb</div><div style="font-size:10px;color:#34d399;margin-top:3px;">✓ 单击聚焦，再单击跳转 · 双击直接跳转</div>
+    <div class="tt-meta">父节点：l2-eq-basic &nbsp; ID：l3-basic-cnc2</div></div>
+    
+    <canvas id="threeCanvas" data-engine="three.js r149" width="800" height="600" style="touch-action: none; cursor: grab;"></canvas>
   </div>
 
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast">⬇ 已生成最新 HTML，请把下载文件覆盖到本目录的 qianli_sop_planet.html，再刷新页面</div>
 
 <script>
 /* ============ 默认数据 ============ */
@@ -477,14 +1680,17 @@ const DEFAULT_NODES = [
   { id: 'l1-eq', text: '设备使用规范', level: 1, parentId: 'root', side: 'R', style: 'normal', color: '#a855f7', crossLinks: '', extraParents: '' },
   { id: 'l1-base', text: '基础工作', level: 1, parentId: 'root', side: 'L', style: 'normal', color: '#a855f7', crossLinks: '', extraParents: '' },
   { id: 'l2-pm-life', text: '项目完整生命流程', level: 2, parentId: 'l1-pm', side: 'R', style: 'normal', color: '#ec4899', crossLinks: '', extraParents: '' },
+  { id: 'l2-pm-life_c_1185', text: '硬件组通识', link: 'https://cquqianli.feishu.cn/wiki/YxU3wtxn1iE43FkNfQvcPi0hnuf', level: 3, parentId: 'l2-pm-life', side: 'R', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
+  { id: 'l2-pm-life_c_1185_copy_6460', text: '进阶电控教程', link: 'https://cquqianli.feishu.cn/wiki/AvTywVTz9iK567k8euFcf75In9g', level: 3, parentId: 'l2-pm-life', side: 'R', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
   { id: 'l2-pm-back', text: '千里后端', level: 2, parentId: 'l1-pm', side: 'R', style: 'normal', color: '#ec4899', crossLinks: '', extraParents: '' },
   { id: 'l3-life-flow', text: '基本工作流', level: 3, parentId: 'l2-pm-life', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
-  { id: 'l3-life-meet', text: '技术组/兵种组/全体会议', level: 3, parentId: 'l2-pm-life', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
+  { id: 'l3-life-meet', text: '会议模板', link: 'https://cquqianli.feishu.cn/wiki/YsN4wr4aJifkVNkw1RAcVoJ3nHf', level: 3, parentId: 'l2-pm-life', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: 'l1-base' },
   { id: 'l3-life-fab', text: '发加工规范', level: 3, parentId: 'l2-pm-life', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'ref-btm', text: 'BTM-ch1', level: 3, parentId: 'l2-pm-life', side: 'R', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
   { id: 'l3-back-kanban', text: '项目看板', link: 'https://cquqianli.feishu.cn/base/ZlVZbXDkRayUzSsFRiycznmZn5b?from=from_copylink', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'l3-back-forum', text: '千里论坛', link: 'https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=730oba42-d484-4daf-80d7-d0b9981b774b', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'l3-back-forum_copy_9061', text: '工单系统', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
+  { id: 'l3-back-forum_copy_9061_copy_1407', text: '值日系统', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: 'l3-lab-duty' },
   { id: 'l3-back-robot', text: '机器人', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'l3-back-stock', text: '入库系统', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'l3-back-approve', text: '审批系统', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
@@ -492,7 +1698,6 @@ const DEFAULT_NODES = [
   { id: 'l3-back-approve_c_4602_c_9342', text: '财务工作通识', link: 'https://cquqianli.feishu.cn/wiki/Tbt3wXiDui4tD1ke3i8cYUZCn4c', level: 5, parentId: 'l3-back-approve_c_4602', side: 'R', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
   { id: 'l3-back-approve_c_9926', text: '3D打印预约', link: 'https://applink.feishu.cn/T99pm183FQZ8', level: 4, parentId: 'l3-back-approve', side: 'R', style: 'normal', color: '#37ff00', crossLinks: '', extraParents: '' },
   { id: 'l3-back-approve_c_2675', text: '工单审批', link: 'https://applink.feishu.cn/T99plZ59QnT8', level: 4, parentId: 'l3-back-approve', side: 'R', style: 'normal', color: '#37ff00', crossLinks: '', extraParents: 'l3-back-forum_copy_9061' },
-  { id: 'ref-training', text: '各模块通识培训文档', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
   { id: 'l2-eq-basic', text: '基本加工工具培训流程', level: 2, parentId: 'l1-eq', side: 'R', style: 'normal', color: '#ec4899', crossLinks: '', extraParents: '' },
   { id: 'l2-eq-special', text: '特别设备/消耗品管理条例', level: 2, parentId: 'l1-eq', side: 'R', style: 'normal', color: '#ec4899', crossLinks: '', extraParents: '' },
   { id: 'l3-basic-3d', text: '3D打印机', link: 'https://cquqianli.feishu.cn/wiki/V4hnw4PE2iisrOk1oR0cJdaLnog?from=from_copylink', level: 3, parentId: 'l2-eq-basic', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: 'l3-back-approve_c_9926' },
@@ -507,8 +1712,9 @@ const DEFAULT_NODES = [
   { id: 'ref-mgrboard', text: '管理责任人公示', link: '负责人：张郭浩', level: 3, parentId: 'l2-eq-special', side: 'R', style: 'person', color: '#23b3fb', crossLinks: '', extraParents: '' },
   { id: 'l2-base-lab', text: '实验室维护', level: 2, parentId: 'l1-base', side: 'L', style: 'normal', color: '#ec4899', crossLinks: '', extraParents: '' },
   { id: 'l2-base-store', text: '物品保管和归类', level: 2, parentId: 'l1-base', side: 'L', style: 'normal', color: '#ec4899', crossLinks: '', extraParents: '' },
-  { id: 'l2-base-seat', text: '工位维护', level: 2, parentId: 'l1-base', side: 'L', style: 'normal', color: '#ec4899', crossLinks: '', extraParents: '' },
-  { id: 'l3-lab-duty', text: '值日', level: 3, parentId: 'l2-base-lab', side: 'L', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
+  { id: 'l2-base-seat', text: '工位维护', link: 'https://cquqianli.feishu.cn/wiki/EKvwwcBmmiuBuTkOP7icXY8gnTJ', level: 2, parentId: 'l1-base', side: 'L', style: 'normal', color: '#ec4899', crossLinks: '', extraParents: '' },
+  { id: 'l2-base-seat_copy_4881', text: '文档与知识库规范', link: 'https://cquqianli.feishu.cn/wiki/Q8tpwej4JiLeGNkJv5mc3DLenmh', level: 2, parentId: 'l1-base', side: 'L', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
+  { id: 'l3-lab-duty', text: '值日制度', link: 'https://cquqianli.feishu.cn/wiki/Aap2wtnwXidvGckYTiFcFtcnnMF', level: 3, parentId: 'l2-base-lab', side: 'L', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'l3-lab-maint', text: '设备维护', level: 3, parentId: 'l2-base-lab', side: 'L', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'l3-store-screw', text: '螺丝柜', level: 3, parentId: 'l2-base-store', side: 'L', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'l3-store-tool', text: '基本工具保管', level: 3, parentId: 'l2-base-store', side: 'L', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
@@ -516,8 +1722,7 @@ const DEFAULT_NODES = [
   { id: 'l3-store-mat', text: '消耗品', level: 3, parentId: 'l2-base-store', side: 'L', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'ref-toolrule', text: '基于各组工具分发和管理办法制定', level: 3, parentId: 'l2-base-store', side: 'L', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
   { id: 'ref-elecrule', text: '包括电机、线材等工具存放位置、取用、报废规范', level: 3, parentId: 'l2-base-store', side: 'L', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
-  { id: 'ref-matrule', text: '包括存储、采购、使用规范', level: 3, parentId: 'l2-base-store', side: 'L', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
-  { id: 'n_mtkh1ezr62', text: '文档与知识库规范', link: 'https://cquqianli.feishu.cn/wiki/Q8tpwej4JiLeGNkJv5mc3DLenmh?from=from_copylink', level: 3, parentId: 'l3-life-flow', side: 'R', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: 'l1-base' }
+  { id: 'ref-matrule', text: '包括存储、采购、使用规范', level: 3, parentId: 'l2-base-store', side: 'L', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' }
 ];
 
 let g_nodes = JSON.parse(JSON.stringify(DEFAULT_NODES));
@@ -2901,5 +4106,5 @@ setTimeout(function(){
   }
 }, 15000);
 </script>
-</body>
-</html>
+
+</body></html>

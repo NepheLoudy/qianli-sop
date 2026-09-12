@@ -1,6 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
+<html lang="zh-CN"><head>
 <meta charset="UTF-8">
 <title>千里基本工作SOP</title>
 <!-- ✅ 本地相对路径加载，完全兼容 file:// 双击打开，无跨域/ORB 问题 -->
@@ -400,15 +399,19 @@
         <li>点空白：退出聚焦</li>
       </ul>
     </div>
-    <div class="hud hud-stats" id="hudStats"></div>
-    <div id="nodeTooltip"></div>
-    <div id="loadingTip">⏳ 正在加载 Three.js 与构建星球…</div>
-    <canvas id="threeCanvas"></canvas>
+    <div class="hud hud-stats" id="hudStats">🌐 <b>50</b> 节点 · 🔗 <b>17</b> 可跳转 · 👤 <b>1</b> 负责人 · ➖ <b>49</b> 连线</div>
+    <div id="nodeTooltip" style="display: none; left: 1177px; top: 539px;">
+    <div class="tt-title">CNC加工设备</div>
+    <div style="color:#cbd5e1;">层级：<b style="color:#e0e7ff;">L3</b> &nbsp; 样式：<b style="color:#e0e7ff;">normal</b></div>
+    <div class="tt-link">🔗 https://cquqianli.feishu.cn/wiki/GcKVwnJBDi83OqkGqPYcZWsrnFb</div><div style="font-size:10px;color:#34d399;margin-top:3px;">✓ 单击聚焦，再单击跳转 · 双击直接跳转</div>
+    <div class="tt-meta">父节点：l2-eq-basic &nbsp; ID：l3-basic-cnc2</div></div>
+    
+    <canvas id="threeCanvas" data-engine="three.js r149" width="800" height="600" style="touch-action: none; cursor: grab;"></canvas>
   </div>
 
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast">⬇ 已生成最新 HTML，请把下载文件覆盖到本目录的 qianli_sop_planet.html，再刷新页面</div>
 
 <script>
 /* ============ 默认数据 ============ */
@@ -420,14 +423,17 @@ const DEFAULT_NODES = [
   { id: 'l1-eq', text: '设备使用规范', level: 1, parentId: 'root', side: 'R', style: 'normal', color: '#a855f7', crossLinks: '', extraParents: '' },
   { id: 'l1-base', text: '基础工作', level: 1, parentId: 'root', side: 'L', style: 'normal', color: '#a855f7', crossLinks: '', extraParents: '' },
   { id: 'l2-pm-life', text: '项目完整生命流程', level: 2, parentId: 'l1-pm', side: 'R', style: 'normal', color: '#ec4899', crossLinks: '', extraParents: '' },
+  { id: 'l2-pm-life_c_1185', text: '硬件组通识', link: 'https://cquqianli.feishu.cn/wiki/YxU3wtxn1iE43FkNfQvcPi0hnuf', level: 3, parentId: 'l2-pm-life', side: 'R', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
+  { id: 'l2-pm-life_c_1185_copy_6460', text: '进阶电控教程', link: 'https://cquqianli.feishu.cn/wiki/AvTywVTz9iK567k8euFcf75In9g', level: 3, parentId: 'l2-pm-life', side: 'R', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
   { id: 'l2-pm-back', text: '千里后端', level: 2, parentId: 'l1-pm', side: 'R', style: 'normal', color: '#ec4899', crossLinks: '', extraParents: '' },
   { id: 'l3-life-flow', text: '基本工作流', level: 3, parentId: 'l2-pm-life', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
-  { id: 'l3-life-meet', text: '技术组/兵种组/全体会议', level: 3, parentId: 'l2-pm-life', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
+  { id: 'l3-life-meet', text: '会议模板', link: 'https://cquqianli.feishu.cn/wiki/YsN4wr4aJifkVNkw1RAcVoJ3nHf', level: 3, parentId: 'l2-pm-life', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: 'l1-base' },
   { id: 'l3-life-fab', text: '发加工规范', level: 3, parentId: 'l2-pm-life', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'ref-btm', text: 'BTM-ch1', level: 3, parentId: 'l2-pm-life', side: 'R', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
   { id: 'l3-back-kanban', text: '项目看板', link: 'https://cquqianli.feishu.cn/base/ZlVZbXDkRayUzSsFRiycznmZn5b?from=from_copylink', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'l3-back-forum', text: '千里论坛', link: 'https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=730oba42-d484-4daf-80d7-d0b9981b774b', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'l3-back-forum_copy_9061', text: '工单系统', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
+  { id: 'l3-back-forum_copy_9061_copy_1407', text: '值日系统', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: 'l3-lab-duty' },
   { id: 'l3-back-robot', text: '机器人', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'l3-back-stock', text: '入库系统', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'l3-back-approve', text: '审批系统', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
@@ -435,7 +441,6 @@ const DEFAULT_NODES = [
   { id: 'l3-back-approve_c_4602_c_9342', text: '财务工作通识', link: 'https://cquqianli.feishu.cn/wiki/Tbt3wXiDui4tD1ke3i8cYUZCn4c', level: 5, parentId: 'l3-back-approve_c_4602', side: 'R', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
   { id: 'l3-back-approve_c_9926', text: '3D打印预约', link: 'https://applink.feishu.cn/T99pm183FQZ8', level: 4, parentId: 'l3-back-approve', side: 'R', style: 'normal', color: '#37ff00', crossLinks: '', extraParents: '' },
   { id: 'l3-back-approve_c_2675', text: '工单审批', link: 'https://applink.feishu.cn/T99plZ59QnT8', level: 4, parentId: 'l3-back-approve', side: 'R', style: 'normal', color: '#37ff00', crossLinks: '', extraParents: 'l3-back-forum_copy_9061' },
-  { id: 'ref-training', text: '各模块通识培训文档', level: 3, parentId: 'l2-pm-back', side: 'R', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
   { id: 'l2-eq-basic', text: '基本加工工具培训流程', level: 2, parentId: 'l1-eq', side: 'R', style: 'normal', color: '#ec4899', crossLinks: '', extraParents: '' },
   { id: 'l2-eq-special', text: '特别设备/消耗品管理条例', level: 2, parentId: 'l1-eq', side: 'R', style: 'normal', color: '#ec4899', crossLinks: '', extraParents: '' },
   { id: 'l3-basic-3d', text: '3D打印机', link: 'https://cquqianli.feishu.cn/wiki/V4hnw4PE2iisrOk1oR0cJdaLnog?from=from_copylink', level: 3, parentId: 'l2-eq-basic', side: 'R', style: 'normal', color: '#34d399', crossLinks: '', extraParents: 'l3-back-approve_c_9926' },
@@ -450,8 +455,9 @@ const DEFAULT_NODES = [
   { id: 'ref-mgrboard', text: '管理责任人公示', link: '负责人：张郭浩', level: 3, parentId: 'l2-eq-special', side: 'R', style: 'person', color: '#23b3fb', crossLinks: '', extraParents: '' },
   { id: 'l2-base-lab', text: '实验室维护', level: 2, parentId: 'l1-base', side: 'L', style: 'normal', color: '#ec4899', crossLinks: '', extraParents: '' },
   { id: 'l2-base-store', text: '物品保管和归类', level: 2, parentId: 'l1-base', side: 'L', style: 'normal', color: '#ec4899', crossLinks: '', extraParents: '' },
-  { id: 'l2-base-seat', text: '工位维护', level: 2, parentId: 'l1-base', side: 'L', style: 'normal', color: '#ec4899', crossLinks: '', extraParents: '' },
-  { id: 'l3-lab-duty', text: '值日', level: 3, parentId: 'l2-base-lab', side: 'L', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
+  { id: 'l2-base-seat', text: '工位维护', link: 'https://cquqianli.feishu.cn/wiki/EKvwwcBmmiuBuTkOP7icXY8gnTJ', level: 2, parentId: 'l1-base', side: 'L', style: 'normal', color: '#ec4899', crossLinks: '', extraParents: '' },
+  { id: 'l2-base-seat_copy_4881', text: '文档与知识库规范', link: 'https://cquqianli.feishu.cn/wiki/Q8tpwej4JiLeGNkJv5mc3DLenmh', level: 2, parentId: 'l1-base', side: 'L', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
+  { id: 'l3-lab-duty', text: '值日制度', link: 'https://cquqianli.feishu.cn/wiki/Aap2wtnwXidvGckYTiFcFtcnnMF', level: 3, parentId: 'l2-base-lab', side: 'L', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'l3-lab-maint', text: '设备维护', level: 3, parentId: 'l2-base-lab', side: 'L', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'l3-store-screw', text: '螺丝柜', level: 3, parentId: 'l2-base-store', side: 'L', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'l3-store-tool', text: '基本工具保管', level: 3, parentId: 'l2-base-store', side: 'L', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
@@ -459,8 +465,7 @@ const DEFAULT_NODES = [
   { id: 'l3-store-mat', text: '消耗品', level: 3, parentId: 'l2-base-store', side: 'L', style: 'normal', color: '#34d399', crossLinks: '', extraParents: '' },
   { id: 'ref-toolrule', text: '基于各组工具分发和管理办法制定', level: 3, parentId: 'l2-base-store', side: 'L', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
   { id: 'ref-elecrule', text: '包括电机、线材等工具存放位置、取用、报废规范', level: 3, parentId: 'l2-base-store', side: 'L', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
-  { id: 'ref-matrule', text: '包括存储、采购、使用规范', level: 3, parentId: 'l2-base-store', side: 'L', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' },
-  { id: 'n_mtkh1ezr62', text: '文档与知识库规范', link: 'https://cquqianli.feishu.cn/wiki/Q8tpwej4JiLeGNkJv5mc3DLenmh?from=from_copylink', level: 3, parentId: 'l3-life-flow', side: 'R', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: 'l1-base' }
+  { id: 'ref-matrule', text: '包括存储、采购、使用规范', level: 3, parentId: 'l2-base-store', side: 'L', style: 'ref-box', color: '#fbbf24', crossLinks: '', extraParents: '' }
 ];
 
 let g_nodes = JSON.parse(JSON.stringify(DEFAULT_NODES));
@@ -2844,5 +2849,5 @@ setTimeout(function(){
   }
 }, 15000);
 </script>
-</body>
-</html>
+
+</body></html>
